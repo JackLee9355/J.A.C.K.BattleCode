@@ -5,6 +5,8 @@ public enum PackedMask {
     WELL_TYPE(0x7000, 12),
     WELL_X(0x0FC0, 6),
     WELL_Y(0x003F, 0),
+    WELL_WORKER_COUNT(0xFF00, 8),
+    WELL_PRESSURE(0x00FF, 0),
     PAGE_INDEX(0xF000, 12);
 
     public final int mask;
