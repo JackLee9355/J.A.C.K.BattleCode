@@ -2,9 +2,9 @@ package jackPlayer;
 
 import battlecode.common.*;
 
-public class LauncherPlayer extends Player {
+public class LauncherController extends Controller {
 
-    public LauncherPlayer() {
+    public LauncherController() {
 
     }
 

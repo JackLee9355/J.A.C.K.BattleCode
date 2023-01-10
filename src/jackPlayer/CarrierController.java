@@ -6,9 +6,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-public class CarrierPlayer extends Player {
+public class CarrierController extends Controller {
 
-    public CarrierPlayer() {
+    public CarrierController() {
 
     }
 

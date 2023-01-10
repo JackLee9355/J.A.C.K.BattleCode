@@ -6,7 +6,7 @@ import battlecode.common.RobotController;
 
 import java.util.Random;
 
-public abstract class Player {
+public abstract class Controller {
     protected int turnCount = 0;
     protected static final Random rng = new Random(6147);
     protected static final Direction[] directions = {

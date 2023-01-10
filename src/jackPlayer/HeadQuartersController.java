@@ -2,16 +2,13 @@ package jackPlayer;
 
 import battlecode.common.*;
 
-import java.util.Random;
+public class HeadQuartersController extends Controller {
 
-public class HeadQuartersPlayer extends Player {
-
-    public HeadQuartersPlayer() {
+    public HeadQuartersController() {
         // init things
     }
 
     public void run(RobotController rc) throws GameActionException {
-        turnCount++;
         // Pick a direction to build in.
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation newLoc = rc.getLocation().add(dir);

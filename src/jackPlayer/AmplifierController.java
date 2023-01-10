@@ -3,9 +3,9 @@ package jackPlayer;
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
 
-public class BoosterPlayer extends Player {
+public class AmplifierController extends Controller {
 
-    public BoosterPlayer() {
+    public AmplifierController() {
 
     }
 

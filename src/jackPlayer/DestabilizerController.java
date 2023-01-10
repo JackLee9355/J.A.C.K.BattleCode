@@ -3,9 +3,9 @@ package jackPlayer;
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
 
-public class DestabilizerPlayer extends Player {
+public class DestabilizerController extends Controller {
 
-    public DestabilizerPlayer() {
+    public DestabilizerController() {
 
     }
 

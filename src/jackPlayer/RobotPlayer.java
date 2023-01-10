@@ -14,25 +14,25 @@ public strictfp class RobotPlayer {
 
         System.out.println("I'm a " + rc.getType() + " and I just got created! I have health " + rc.getHealth());
 
-        Player p;
+        Controller p;
         switch (rc.getType()) {
             case HEADQUARTERS:
-                p = new HeadQuartersPlayer();
+                p = new HeadQuartersController();
                 break;
             case CARRIER:
-                p = new CarrierPlayer();
+                p = new CarrierController();
                 break;
             case LAUNCHER:
-                p = new LauncherPlayer();
+                p = new LauncherController();
                 break;
             case BOOSTER:
-                p = new BoosterPlayer();
+                p = new BoosterController();
                 break;
             case DESTABILIZER:
-                p = new DestabilizerPlayer();
+                p = new DestabilizerController();
                 break;
             case AMPLIFIER:
-                p = new AmplifierPlayer();
+                p = new AmplifierController();
                 break;
             default:
                 return;
