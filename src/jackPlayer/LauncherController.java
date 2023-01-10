@@ -4,14 +4,15 @@ import battlecode.common.*;
 
 public class LauncherController extends Controller {
 
-    public LauncherController() {
+    public LauncherController(RobotController rc) {
+        super(rc);
 
     }
 
 
     @Override
     public void run(RobotController rc) throws GameActionException {
-        turnCount++;
+        super.run(rc);
         // Try to attack someone
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
