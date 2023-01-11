@@ -16,7 +16,7 @@ public abstract class Controller {
     protected final int[] sharedArray = new int[64];
     protected Direction alongObstacleDir = null;
     protected static final Random rng = new Random(6147);
-    protected static final int[][] DIRS = new int[][]{
+    protected static final int[][] DIRS = new int[][] {
             {0, 1},
             {1, 0},
             {1, 1},
@@ -131,6 +131,7 @@ public abstract class Controller {
             return true;
         }
 
+        // Determine all the locations that can be viewed by the robot
         MapLocation[] allLocations = rc.getAllLocationsWithinRadiusSquared(myLocation, rc.getType().visionRadiusSquared);
         MapLocation closestToTarget = myLocation;
         int closestDistance = closestToTarget.distanceSquaredTo(target);
@@ -142,32 +143,41 @@ public abstract class Controller {
             }
         }
 
+        // Frontier (nodes that we could be visiting until finding the closestToTarget location)
         PriorityQueue<Node> frontier = new PriorityQueue<>();
         Node start = new Node(myLocation, 0 + myLocation.distanceSquaredTo(closestToTarget));
         frontier.add(start);
 
+        // Came from array stores the shortest and least expensive path given our heuristic
         int cameFrom[][][] = new int[60][60][2];
-        int costSoFar[][] = new int[60][60];
 
+        // Keeps track of the costs so far made in the path
+        int costSoFar[][] = new int[60][60];
+        for (int[] row : costSoFar) Arrays.fill(row, -1);
+
+        // Setting defaults for the path on location (x, y) & its cost
         cameFrom[myLocation.x][myLocation.y][0] = -1;
         cameFrom[myLocation.x][myLocation.y][1] = -1;
         costSoFar[myLocation.x][myLocation.y] = 0;
 
+        // Iterate until the frontier is completely empty or a path is found
         while (!frontier.isEmpty()) {
             Node curr = frontier.poll();
+            // Path is found, break and just flow the head of the path (closestToTarget)
+            // back to start (stop right before)
             if (curr.location.equals(closestToTarget)) {
-                break; // last location is closestToTarget so just break and follow it back in cameFrom
+                break;
             }
 
-            for (int[] pair : DIRS) {
-                int x0 = curr.location.x, y0 = curr.location.y;
-                int x1 = pair[0], y1 = pair[1];
-                MapLocation next = new MapLocation(x0 + x1, y0 + y1);
+            // Iterate through all 8 directions && build the path
+            for (int[] dir : DIRS) {
+                int currX = curr.location.x, currY = curr.location.y;
+                MapLocation next = new MapLocation(currX + dir[0], currY + dir[1]);
                 if (!rc.onTheMap(next)) {
                     continue;
                 }
 
-                if (rc.canSenseLocation(next)) {
+                if (!rc.canSenseLocation(next)) {
                     continue;
                 }
 
@@ -175,23 +185,25 @@ public abstract class Controller {
                     continue;
                 }
 
-                // Graph cost of 1 given that its adj
-                int newCost = costSoFar[curr.location.x][curr.location.y] + 1;
-                if (costSoFar[next.x][next.y] == 0 || newCost < costSoFar[next.x][next.y]) {
+                // + 1 reviews to the graph cost & since they are all adjacent add 1
+                int newCost = costSoFar[currX][currY] + 1;
+                if (costSoFar[next.x][next.y] == -1 || newCost < costSoFar[next.x][next.y]) {
 
                     // Map costSoFar[next] = newCost
                     costSoFar[next.x][next.y] = newCost;
 
+                    // Update priority and append it to the frontier
                     int priority = newCost + next.distanceSquaredTo(closestToTarget);
                     frontier.add(new Node(next, priority));
 
                     // Map cameFrom[next] = curr
-                    cameFrom[next.x][next.y][0] = curr.location.x;
-                    cameFrom[next.x][next.y][1] = curr.location.y;
+                    cameFrom[next.x][next.y][0] = currX;
+                    cameFrom[next.x][next.y][1] = currY;
                 }
             }
         }
 
+        // Find the moveSpot right before the start location by following the path back
         MapLocation moveSpot = closestToTarget, curr = closestToTarget;
         while (cameFrom[curr.x][curr.y][0] > 0 && cameFrom[curr.x][curr.y][1] > 0) {
             int parentX = cameFrom[curr.x][curr.y][0];
@@ -200,11 +212,13 @@ public abstract class Controller {
             curr = new MapLocation(parentX, parentY);
         }
 
+        // Move in that direction
         Direction dir = myLocation.directionTo(moveSpot);
         if (rc.canMove(dir)) {
             rc.move(dir);
             return true;
         }
+
         return false;
     }
 }
