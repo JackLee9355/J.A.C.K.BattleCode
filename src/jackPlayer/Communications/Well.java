@@ -5,7 +5,8 @@ import battlecode.common.ResourceType;
 
 public class Well {
 
-    public Well(boolean amplifierPresent, int workerCount, int pressure, ResourceType type, MapLocation mapLocation) {
+    public Well(int wellIndex, boolean amplifierPresent, int workerCount, int pressure, ResourceType type, MapLocation mapLocation) {
+        this.wellIndex = wellIndex;
         this.amplifierPresent = amplifierPresent;
         this.workerCount = workerCount;
         this.pressure = pressure;
@@ -13,6 +14,7 @@ public class Well {
         this.mapLocation = mapLocation;
     }
 
+    private int wellIndex;
     private boolean amplifierPresent;
     private int workerCount;
     private int pressure;
@@ -37,5 +39,9 @@ public class Well {
 
     public int getPressure() {
         return pressure;
+    }
+
+    public int getWellIndex() {
+        return wellIndex;
     }
 }
