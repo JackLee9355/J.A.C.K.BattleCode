@@ -53,6 +53,19 @@ public abstract class Controller {
         }
     }
 
+    public MapLocation closestLocation(MapLocation[] locations, MapLocation relative, MapLocation target) throws GameActionException {
+        MapLocation closestToTarget = relative;
+        int closestDistance = closestToTarget.distanceSquaredTo(target);
+        for (MapLocation location : locations) {
+            int currDistance = location.distanceSquaredTo(target);
+            if (currDistance < closestDistance) {
+                closestToTarget = location;
+                closestDistance = currDistance;
+            }
+        }
+        return closestToTarget;
+    }
+
     public MapLocation[] enemiesInVision(RobotController rc, int visionRadiusSquared, Team enemyTeam) throws GameActionException {
         RobotInfo[] enemies = rc.senseNearbyRobots(visionRadiusSquared, enemyTeam);
         MapLocation[] enemyLocations = new MapLocation[enemies.length];
@@ -133,15 +146,7 @@ public abstract class Controller {
 
         // Determine all the locations that can be viewed by the robot
         MapLocation[] allLocations = rc.getAllLocationsWithinRadiusSquared(myLocation, rc.getType().visionRadiusSquared);
-        MapLocation closestToTarget = myLocation;
-        int closestDistance = closestToTarget.distanceSquaredTo(target);
-        for (MapLocation location : allLocations) {
-            int currDistance = location.distanceSquaredTo(target);
-            if (currDistance < closestDistance) {
-                closestToTarget = location;
-                closestDistance = currDistance;
-            }
-        }
+        MapLocation closestToTarget = closestLocation(allLocations, myLocation, target);
 
         // Frontier (nodes that we could be visiting until finding the closestToTarget location)
         PriorityQueue<Node> frontier = new PriorityQueue<>();
@@ -220,5 +225,71 @@ public abstract class Controller {
         }
 
         return false;
+    }
+
+    public void generalExplore(RobotController rc) throws GameActionException {
+        if(rc.isMovementReady()){
+            Direction dir = null;
+            int[] nearby = new int[4]; //0-N (up) 1-E (right), 2-S (down), 3-W (left)
+            // +1 for ally robot (to disperse), +1 for opposite direction if enemy robot (to avoid)
+            RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
+            int thisX = rc.getLocation().x;
+            int thisY = rc.getLocation().y;
+            for (RobotInfo robot : nearbyRobots) {
+                int x = robot.location.x;
+                int y = robot.location.y;
+                int diffX = x - thisX; //pos = enemy is N, neg = enemy = S
+                int diffY = y - thisY; //pos = enemy is E, neg = W
+                if (diffX > 0) {
+                    nearby[0] += 1;
+                }
+                if (diffX < 0) {
+                    nearby[2] += 1;
+                }
+                if (diffY > 0) {
+                    nearby[1] += 1;
+                }
+                if (diffY < 0) {
+                    nearby[3] += 1;
+                }
+            }
+            boolean N = false;
+            boolean S = false;
+            boolean E = false;
+            boolean W = false;
+            int updown = nearby[0] - nearby[2];
+            int ew = nearby[1] - nearby[3];
+            if (updown > 0) {
+                S = true; //enemies in N
+            } else if (updown < 0) {
+                N = true;
+            }
+            if (ew > 0) {
+                W = true;
+            }
+            if (ew < 0) {
+                E = true;
+            }
+            if(N && E && rc.canMove(Direction.NORTHEAST)){
+                dir = Direction.NORTHEAST;
+            } else if (N && W && rc.canMove((Direction.NORTHWEST))){
+                dir = Direction.NORTHWEST;
+            } else if (S && E && rc.canMove((Direction.SOUTHEAST))){
+                dir = Direction.SOUTHEAST;
+            } else if (S && W && rc.canMove(Direction.SOUTHWEST)){
+                dir = Direction.SOUTHWEST;
+            } else if(N && rc.canMove(Direction.NORTH)){
+                dir = Direction.NORTH;
+            } else if (E && rc.canMove(Direction.EAST)){
+                dir = Direction.EAST;
+            } else if (S && rc.canMove(Direction.SOUTH)){
+                dir = Direction.SOUTH;
+            } else if(W && rc.canMove(Direction.WEST)){
+                dir = Direction.WEST;
+            }
+            if(dir != null ){
+                rc.move(dir); //only moves on space
+            }
+        }
     }
 }
