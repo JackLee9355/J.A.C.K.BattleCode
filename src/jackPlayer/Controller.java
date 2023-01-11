@@ -6,6 +6,8 @@ import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public abstract class Controller {
@@ -35,6 +37,14 @@ public abstract class Controller {
     public void run(RobotController rc) throws GameActionException {
         turnCount++;
         myLocation = rc.getLocation();
+    }
+
+    protected List<MapLocation> adjacentSquares(RobotController rc) throws GameActionException {
+        List<MapLocation> locations = new ArrayList<>();
+        for (Direction dir : directions) {
+            locations.add(rc.getLocation().add(dir));
+        }
+        return locations;
     }
 
     protected void readEntireArray(RobotController rc) throws GameActionException {

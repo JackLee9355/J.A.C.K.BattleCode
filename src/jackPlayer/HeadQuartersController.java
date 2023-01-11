@@ -9,7 +9,9 @@ import java.util.List;
 public class HeadQuartersController extends Controller {
 
     int headQuartersIndex;
-
+    int carriersConstructed;
+    int launchersConstructed;
+    int amplifiersConstructed;
 
     public HeadQuartersController(RobotController rc) {
         super(rc);
@@ -28,6 +30,63 @@ public class HeadQuartersController extends Controller {
         }
     }
 
+    private void constructLauncher(RobotController rc) throws GameActionException {
+        if (rc.getResourceAmount(ResourceType.MANA) < 60)
+            return;
+
+        boolean built = false;
+        for (MapLocation loc : adjacentSquares(rc)) {
+            if (rc.canBuildRobot(RobotType.LAUNCHER, loc)) {
+                rc.buildRobot(RobotType.LAUNCHER, loc);
+                built = true;
+                break;
+            }
+        }
+        if (built)
+            launchersConstructed++;
+    }
+
+    private void constructCarrier(RobotController rc) throws GameActionException {
+        if (rc.getResourceAmount(ResourceType.ADAMANTIUM) < 50)
+            return;
+
+        boolean built = false;
+        for (MapLocation loc : adjacentSquares(rc)) {
+            if (rc.canBuildRobot(RobotType.CARRIER, loc)) {
+                rc.buildRobot(RobotType.CARRIER, loc);
+                built = true;
+                break;
+            }
+        }
+        if (built)
+            carriersConstructed++;
+    }
+
+    private void constructAmplifier(RobotController rc) throws GameActionException {
+        if (rc.getResourceAmount(ResourceType.ADAMANTIUM) < 40 || rc.getResourceAmount(ResourceType.MANA) < 40)
+            return;
+
+        boolean built = false;
+        for (MapLocation loc : adjacentSquares(rc)) {
+            if (rc.canBuildRobot(RobotType.AMPLIFIER, loc)) {
+                rc.buildRobot(RobotType.AMPLIFIER, loc);
+                built = true;
+                break;
+            }
+        }
+        if (built)
+            amplifiersConstructed++;
+    }
+
+    private void constructUnits(RobotController rc) throws GameActionException {
+        if ((carriersConstructed + launchersConstructed + 1) % 20 == 0) {
+            constructAmplifier(rc);
+        } else {
+            constructLauncher(rc);
+            constructCarrier(rc);
+        }
+    }
+
     public void run(RobotController rc) throws GameActionException {
         super.run(rc); // Common actions
         if (headQuartersIndex == 0) {
@@ -35,6 +94,8 @@ public class HeadQuartersController extends Controller {
                 Communications.iteratePage(rc);
             }
         }
+
+        constructUnits(rc);
     }
 
 }
