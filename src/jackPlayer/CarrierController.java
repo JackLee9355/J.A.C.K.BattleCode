@@ -38,8 +38,16 @@ public class CarrierController extends Controller {
 
     private void assignHQ(RobotController rc) throws GameActionException {
         List<Headquarter> headQuarters = Communications.getHeadQuarters(rc);
-        if (headQuarters == null && headQuarters.size() != 0) {
-
+        if (headQuarters == null || headQuarters.size() == 0) {
+            for (RobotInfo robot : rc.senseNearbyRobots()) {
+                if (robot.getType() == RobotType.HEADQUARTERS) {
+                    MapLocation curLoc = rc.getLocation();
+                    if (headquarter == null ||
+                            curLoc.distanceSquaredTo(robot.getLocation()) < curLoc.distanceSquaredTo(headquarter)) {
+                        headquarter = robot.getLocation();
+                    }
+                }
+            }
         } else {
             MapLocation curLoc = rc.getLocation();
             headquarter = headQuarters.stream().min(
@@ -87,4 +95,6 @@ public class CarrierController extends Controller {
         attemptCollect(rc);
         attemptDeposit(rc);
     }
+
+
 }
