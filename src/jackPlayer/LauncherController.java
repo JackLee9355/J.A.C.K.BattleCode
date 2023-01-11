@@ -40,7 +40,7 @@ public class LauncherController extends Controller {
         MapLocation enemyLocation = closestEnemy(rc);
         if (enemyLocation != null) {
             attack(rc, enemyLocation);
-            moveTowards(rc, enemyLocation);
+            moveTowardsAStar(rc, enemyLocation);
         } else {
             generalExplore(rc);
         }
