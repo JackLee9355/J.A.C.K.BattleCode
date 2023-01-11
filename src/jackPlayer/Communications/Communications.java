@@ -190,7 +190,7 @@ public class Communications {
         return wells;
     }
 
-    public static void incrementWellWorkers (RobotController rc, Well well) throws GameActionException {
+    public static void incrementWellWorkers(RobotController rc, Well well) throws GameActionException {
         int countIndex = well.getWellIndex() + 1;
         int newCount = well.getWorkerCount() < 15 ? well.getWorkerCount() + 1 : 15;
         // TODO: Need to write a generalized pack function
