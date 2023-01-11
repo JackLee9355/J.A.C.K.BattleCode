@@ -1,23 +1,27 @@
 package jackPlayer;
 
 import battlecode.common.*;
+import jackPlayer.Communications.Communications;
+import jackPlayer.Communications.Headquarter;
+
+import java.util.List;
 
 public class HeadQuartersController extends Controller {
 
-    int[][] pages;
     int headQuartersIndex;
 
 
     public HeadQuartersController(RobotController rc) {
         super(rc);
         try {
-            for (int i = 2; i < 6; i++) {
-                pages[0][i] = rc.readSharedArray(i);
+            List<Headquarter> headquarters = Communications.getHeadQuarters(rc);
+            if (headquarters == null) {
+                headQuartersIndex = 0;
+            } else {
+                headQuartersIndex = headquarters.size();
             }
-            for (headQuartersIndex = 0; headQuartersIndex < 4; headQuartersIndex++) {
-                if (pages[0][headQuartersIndex + 2] == 0) {
-                    break;
-                }
+            if (headQuartersIndex == 0) {
+                Communications.initPages(rc);
             }
         } catch (GameActionException e) {
             System.out.println(rc.getType() + "Exception, cannot initialize");
@@ -27,12 +31,8 @@ public class HeadQuartersController extends Controller {
     public void run(RobotController rc) throws GameActionException {
         super.run(rc); // Common actions
         if (headQuartersIndex == 0) {
-            int[] array = new int[64];
-            for (int i = 0; i < 64; i++) {
-                array[i] = rc.readSharedArray(i);
-            }
-            if (turnCount != 0) {
-
+            if (turnCount > 2 && turnCount % 2 == 0) {
+                Communications.iteratePage(rc);
             }
         }
     }
