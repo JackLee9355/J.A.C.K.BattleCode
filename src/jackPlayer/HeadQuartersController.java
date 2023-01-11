@@ -3,6 +3,7 @@ package jackPlayer;
 import battlecode.common.*;
 import jackPlayer.Communications.Communications;
 import jackPlayer.Communications.Headquarter;
+import jackPlayer.Communications.Well;
 
 import java.util.List;
 
@@ -89,15 +90,28 @@ public class HeadQuartersController extends Controller {
 
     public void run(RobotController rc) throws GameActionException {
         super.run(rc); // Common actions
+        rc.setIndicatorString(headQuartersIndex + "");
+        if (turnCount < 3) {
+            Communications.addFriendlyHeadquarters(rc, myLocation.x, myLocation.y, headQuartersIndex);
+        }
+        WellInfo[] wellInfos = rc.senseNearbyWells();
+        for (WellInfo wellInfo : wellInfos) {
+            manageWell(rc, wellInfo);
+        }
         if (headQuartersIndex == 0) {
-            WellInfo[] wellInfos = rc.senseNearbyWells();
-            for (WellInfo wellInfo : wellInfos) {
-                manageWell(rc, wellInfo);
-            }
-            if (turnCount > 2 && turnCount % 2 == 0) {
+            Communications.processInput(rc);
+            if (turnCount > 10) {
                 Communications.iteratePage(rc);
             }
-            Communications.processInput(rc);
+//            List<Well> wells = Communications.getWells(rc);
+//            if (wells != null) {
+//                StringBuilder sb = new StringBuilder();
+//                for (Well well : wells) {
+//                    sb.append(well.getMapLocation().x).append(" ").append(well.getMapLocation().y).append(", ");
+//                }
+//                sb.append("\n");
+//                System.out.println(sb.toString());
+//            }
         }
         constructUnits(rc);
     }
