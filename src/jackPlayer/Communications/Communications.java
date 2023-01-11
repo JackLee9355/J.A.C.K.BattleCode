@@ -11,14 +11,41 @@ import java.util.List;
 public class Communications {
 
     private static final int NULL_INDICATOR = (1 << 16) - 1;
-    private static int[][] pages = new int[2][64];
+    private static final int PAGE_SIZE = 64;
+    private static final int PAGE_COUNT = 2;
+    private static final int[][] pages = new int[PAGE_COUNT][PAGE_SIZE];
 
     private static int unpack(int packedInt, PackedMask mask) {
         return (packedInt & mask.mask) >>> mask.shift;
     }
 
+    private static int packControl(int index, int coordination, int focus_x, int focus_y) {
+        return -1; // TODO
+    }
+
+    private static int packInput(int type, int x, int y) {
+        return (type << PackedMask.INPUT_TYPE.shift) | (x << PackedMask.INPUT_X.shift) | (y << PackedMask.INPUT_Y.shift);
+    }
+
+    private static int packWellPosition() {
+        return -1; // TODO
+    }
+
+    private static int packWellStatus() {
+        return -1; // TODO
+    }
+
+    private static int packHeadQuarters() {
+        return -1; // TODO
+    }
+
+    private static int packAnchor() {
+        return -1; // TODO
+    }
+
+
     private static int getPage(RobotController rc) throws GameActionException {
-        return unpack(rc.readSharedArray(PageIndex.PAGE_NUMBER.index), PackedMask.PAGE_INDEX);
+        return unpack(rc.readSharedArray(PageLocation.PAGE_NUMBER.index), PackedMask.PAGE_INDEX);
     }
 
     private static ResourceType intToResourceType(int value) {
@@ -34,66 +61,123 @@ public class Communications {
         }
     }
 
+    private static EntityType intToEntityType(int value) {
+        switch (value) {
+            case 0:
+                return EntityType.ANCHOR;
+            case 1:
+                return EntityType.WELL;
+            case 2:
+                return EntityType.HEADQUARTER;
+            default:
+                return null;
+        }
+    }
+
+    private static boolean addWell(int x, int y) {
+        for (int i = PageLocation.WELLS.index; i < PageLocation.WELLS.end; i += PageLocation.WELLS.size) {
+            if (pages[PageLocation.WELLS.page][i] == NULL_INDICATOR) {
+                pages[PageLocation.WELLS.page][i] = (x << PackedMask.WELL_X.shift) | (y << PackedMask.WELL_Y.shift);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean addAnchor(int x, int y) {
+        return false; // TODO: write
+    }
+
+    private static boolean addEnemyBase(int x, int y) {
+        return false; // TODO: write
+    }
+
     public static void initPages(RobotController rc) throws GameActionException {
         for (int i = 0; i < pages.length; i++) {
             pages[i][0] = i;
-            for (int j = 1; j < 64; j++) {
+            for (int j = 1; j < PAGE_SIZE; j++) {
                 pages[i][j] = NULL_INDICATOR;
             }
         }
-        for (int i = 0; i < 64; i++) {
+        for (int i = 0; i < PAGE_SIZE; i++) {
             rc.writeSharedArray(i, pages[0][i]);
         }
     }
 
     public static void iteratePage(RobotController rc) throws GameActionException {
         int pageIndex = getPage(rc);
-        for (int i = 0; i < 64; i++) {
+        for (int i = 0; i < PAGE_SIZE; i++) {
             pages[pageIndex][i] = rc.readSharedArray(i);
         }
         pageIndex++;
         pageIndex %= pages.length;
-        for (int i = 0; i < 64; i++) {
+        for (int i = 0; i < PAGE_SIZE; i++) {
             rc.writeSharedArray(i, pages[pageIndex][i]);
+        }
+    }
+
+    public static void input(RobotController rc, EntityType type, int x, int y) throws GameActionException {
+        if (rc.readSharedArray(PageLocation.INPUT.index) == NULL_INDICATOR) {
+            rc.writeSharedArray(PageLocation.INPUT.index, packInput(type.id, x, y));
         }
     }
 
     public static void processInput(RobotController rc) throws GameActionException {
         int input;
-        if ((input = rc.readSharedArray(1)) == NULL_INDICATOR) {
+        if ((input = rc.readSharedArray(PageLocation.INPUT.index)) == NULL_INDICATOR) {
             return;
         }
-
-
+        EntityType type = intToEntityType(unpack(input, PackedMask.INPUT_TYPE));
+        int x = unpack(input, PackedMask.INPUT_X);
+        int y = unpack(input, PackedMask.INPUT_Y);
+        boolean added = false;
+        if (type != null) {
+            switch (type) {
+                case ANCHOR:
+                    added = addAnchor(x, y);
+                    break;
+                case WELL:
+                    added = addWell(x, y);
+                    break;
+                case HEADQUARTER:
+                    added = addEnemyBase(x, y);
+                    break;
+            }
+        }
+        rc.writeSharedArray(PageLocation.INPUT.index, NULL_INDICATOR);
+        if (type == EntityType.WELL && !added) {
+            System.out.println("Could not add well! (List full?)");
+        }
     }
 
     public static List<Headquarter> getHeadQuarters(RobotController rc) throws GameActionException {
-        if (getPage(rc) != PageLocation.HEADQUARTERS.page)
+        if (getPage(rc) != PageLocation.HEADQUARTERS.page) {
             return null;
+        }
         List<Headquarter> headquarters = new ArrayList<>();
-        for (int i = PageIndex.HEADQUARTERS.index; i < PageIndex.HEADQUARTERS.index + 4; i++) {
+        for (int i = PageLocation.HEADQUARTERS.index; i < PageLocation.HEADQUARTERS.end; i += PageLocation.HEADQUARTERS.size) {
             int packedInfo = rc.readSharedArray(i);
             if (packedInfo == 0 || packedInfo == NULL_INDICATOR) {
                 break;
             }
-            int x = unpack(packedInfo, PackedMask.HEADQUATER_X);
-            int y = unpack(packedInfo, PackedMask.HEADQUATER_Y);
+            int x = unpack(packedInfo, PackedMask.HEADQUARTER_X);
+            int y = unpack(packedInfo, PackedMask.HEADQUARTER_Y);
             headquarters.add(new Headquarter(new MapLocation(x, y)));
         }
         return headquarters;
     }
 
     public static List<Well> getWells(RobotController rc) throws GameActionException {
-        if (getPage(rc) != PageLocation.WELLS.page)
+        if (getPage(rc) != PageLocation.WELLS.page) {
             return null;
-
+        }
         List<Well> wells = new ArrayList<>();
-        for (int i = PageIndex.WELLS.index; i < 62; i += 2) {
+        for (int i = PageLocation.WELLS.index; i < PageLocation.WELLS.end; i += PageLocation.WELLS.size) {
             int packedLoc = rc.readSharedArray(i);
             int wellType = unpack(packedLoc, PackedMask.WELL_TYPE);
-            if (wellType == NULL_INDICATOR) // Using this as the null terminator for the well list.
+            if (wellType == NULL_INDICATOR) {
                 break;
-
+            }
             boolean hasAmplifier = unpack(packedLoc, PackedMask.AMPLIFIER_PRESENT) != 0;
             int x = unpack(packedLoc, PackedMask.WELL_X);
             int y = unpack(packedLoc, PackedMask.WELL_Y);

@@ -8,8 +8,11 @@ public enum PackedMask {
     WELL_WORKER_COUNT(0xFF00, 8),
     WELL_PRESSURE(0x00FF, 0),
     PAGE_INDEX(0xF000, 12),
-    HEADQUATER_X(0x0FC0, 6),
-    HEADQUATER_Y(0x003F, 0);
+    HEADQUARTER_X(0x0FC0, 6),
+    HEADQUARTER_Y(0x003F, 0),
+    INPUT_X(0x0FC0, 6),
+    INPUT_Y(0x003F, 0),
+    INPUT_TYPE(0xF000, 12);
 
     public final int mask;
     public final int shift;
