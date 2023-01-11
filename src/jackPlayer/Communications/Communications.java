@@ -184,9 +184,17 @@ public class Communications {
             int packedStatus = rc.readSharedArray(i + 1);
             int workerCount = unpack(packedStatus, PackedMask.WELL_WORKER_COUNT);
             int pressure = unpack(packedStatus, PackedMask.WELL_PRESSURE);
-            wells.add(new Well(hasAmplifier, workerCount, pressure, intToResourceType(wellType), new MapLocation(x, y)));
+
+            wells.add(new Well(i, hasAmplifier, workerCount, pressure, intToResourceType(wellType), new MapLocation(x, y)));
         }
         return wells;
+    }
+
+    public static void incrementWellWorkers (RobotController rc, Well well) throws GameActionException {
+        int countIndex = well.getWellIndex() + 1;
+        int newCount = well.getWorkerCount() < 15 ? well.getWorkerCount() + 1 : 15;
+        // TODO: Need to write a generalized pack function
+        rc.writeSharedArray(countIndex, (newCount << 4) & (well.getPressure()));
     }
 }
 

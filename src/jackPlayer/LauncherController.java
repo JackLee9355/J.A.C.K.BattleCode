@@ -3,35 +3,46 @@ package jackPlayer;
 import battlecode.common.*;
 
 public class LauncherController extends Controller {
+    private RobotType type;
+    private Team enemyTeam;
+    private int visionRadiusSquared;
 
     public LauncherController(RobotController rc) {
         super(rc);
+        type = rc.getType();
+        enemyTeam = rc.getTeam().opponent();
+        visionRadiusSquared = rc.getType().visionRadiusSquared;
+    }
 
+    public MapLocation closestEnemy(RobotController rc) throws GameActionException {
+        MapLocation[] enemyLocations = enemiesInVision(rc, visionRadiusSquared, enemyTeam);
+        if (enemyLocations.length > 0) {
+            return closestLocation(enemyLocations, enemyLocations[0], myLocation);
+        } else {
+            return null;
+        }
+    }
+
+    public boolean attack(RobotController rc, MapLocation enemyLocation) throws GameActionException {
+        if (rc.isActionReady() && myLocation.distanceSquaredTo(enemyLocation) <= type.actionRadiusSquared) {
+            if (rc.canAttack(enemyLocation)) {
+                rc.attack(enemyLocation);
+                return true;
+            }
+        }
+        return false;
     }
 
 
     @Override
     public void run(RobotController rc) throws GameActionException {
         super.run(rc);
-        // Try to attack someone
-        int radius = rc.getType().actionRadiusSquared;
-        Team opponent = rc.getTeam().opponent();
-        RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
-        if (enemies.length > 0) {
-            // MapLocation toAttack = enemies[0].location;
-            MapLocation toAttack = rc.getLocation().add(Direction.EAST);
-
-            if (rc.canAttack(toAttack)) {
-                rc.setIndicatorString("Attacking");
-                rc.attack(toAttack);
-            }
+        MapLocation enemyLocation = closestEnemy(rc);
+        if (enemyLocation != null) {
+            attack(rc, enemyLocation);
+            moveTowards(rc, enemyLocation);
+        } else {
+            generalExplore(rc);
         }
-
-        // Also try to move randomly.
-        Direction dir = directions[rng.nextInt(directions.length)];
-        if (rc.canMove(dir)) {
-            rc.move(dir);
-        }
-
     }
 }
