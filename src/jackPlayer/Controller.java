@@ -189,10 +189,6 @@ public abstract class Controller {
                     continue;
                 }
 
-                if (!rc.onTheMap(next)) {
-                    continue;
-                }
-
                 if (rc.senseRobotAtLocation(next) != null) {
                     continue;
                 }
