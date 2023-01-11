@@ -18,16 +18,6 @@ public abstract class Controller {
     protected final int[] sharedArray = new int[64];
     protected Direction alongObstacleDir = null;
     protected static final Random rng = new Random(6147);
-    protected static final int[][] DIRS = new int[][] {
-            {0, 1},
-            {1, 0},
-            {1, 1},
-            {0, -1},
-            {-1, 0},
-            {-1, -1},
-            {1, -1},
-            {-1, 1}
-    };
     protected static final Direction[] directions = {
             Direction.NORTH,
             Direction.NORTHEAST,
@@ -160,11 +150,17 @@ public abstract class Controller {
 
         // Frontier (nodes that we could be visiting until finding the closestToTarget location)
         PriorityQueue<Node> frontier = new PriorityQueue<>();
-        Node start = new Node(myLocation, myLocation.distanceSquaredTo(closestToTarget));
+        Node start = new Node(myLocation, Math.max(Math.abs(myLocation.x - closestToTarget.x), Math.abs(myLocation.y- closestToTarget.y)));
         frontier.add(start);
 
         // Came from array stores the shortest and least expensive path given our heuristic
         int[][][] cameFrom = new int[60][60][2];
+        for (int i = 0; i < 60; i++) {
+            for (int j = 0; j < 60; j++) {
+                cameFrom[i][j][0] = -1;
+                cameFrom[i][j][1] = -1;
+            }
+        }
 
         // Keeps track of the costs so far made in the path
         int[][] costSoFar = new int[60][60];
@@ -185,14 +181,15 @@ public abstract class Controller {
             }
 
             // Iterate through all 8 directions && build the path
-            for (int[] dir : DIRS) {
+            for (Direction dir : directions) {
                 int currX = curr.location.x, currY = curr.location.y;
-                MapLocation next = new MapLocation(currX + dir[0], currY + dir[1]);
-                if (!rc.onTheMap(next)) {
+                MapLocation next = new MapLocation(currX, currY).add(dir);
+
+                if (!rc.canSenseLocation(next)) {
                     continue;
                 }
 
-                if (!rc.canSenseLocation(next)) {
+                if (!rc.onTheMap(next)) {
                     continue;
                 }
 
@@ -208,7 +205,7 @@ public abstract class Controller {
                     costSoFar[next.x][next.y] = newCost;
 
                     // Update priority and append it to the frontier
-                    int priority = newCost + next.distanceSquaredTo(closestToTarget);
+                    int priority = newCost + Math.max(Math.abs(next.x - currX), Math.abs(next.y - currY));
                     frontier.add(new Node(next, priority));
 
                     // Map cameFrom[next] = curr
@@ -218,9 +215,13 @@ public abstract class Controller {
             }
         }
 
+        if (costSoFar[closestToTarget.x][closestToTarget.y] == -1) {
+            return moveTowards(rc, target);
+        }
+
         // Find the moveSpot right before the start location by following the path back
         MapLocation moveSpot = closestToTarget, curr = closestToTarget;
-        while (cameFrom[curr.x][curr.y][0] > 0 && cameFrom[curr.x][curr.y][1] > 0) {
+        while (cameFrom[curr.x][curr.y][0] >= 0 && cameFrom[curr.x][curr.y][1] >= 0) {
             int parentX = cameFrom[curr.x][curr.y][0];
             int parentY = cameFrom[curr.x][curr.y][1];
             moveSpot = new MapLocation(curr.x, curr.y);
