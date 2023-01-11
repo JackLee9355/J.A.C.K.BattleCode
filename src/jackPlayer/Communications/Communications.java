@@ -15,34 +15,36 @@ public class Communications {
     private static final int PAGE_COUNT = 2;
     private static final int[][] pages = new int[PAGE_COUNT][PAGE_SIZE];
 
+    static int control_number; // Only master headquarters manages
+
     private static int unpack(int packedInt, PackedMask mask) {
         return (packedInt & mask.mask) >>> mask.shift;
     }
 
     private static int packControl(int index, int coordination, int focus_x, int focus_y) {
-        return -1; // TODO
+        return (index << PackedMask.PAGE_INDEX.shift) | (coordination << PackedMask.COORDINATION.shift) |
+                ((focus_x >> 1) << PackedMask.FOCUS_X.shift) | ((focus_y >> 1) << PackedMask.FOCUS_Y.shift);
     }
 
     private static int packInput(int type, int x, int y) {
         return (type << PackedMask.INPUT_TYPE.shift) | (x << PackedMask.INPUT_X.shift) | (y << PackedMask.INPUT_Y.shift);
     }
 
-    private static int packWellPosition() {
-        return -1; // TODO
+    private static int packWellPosition(int x, int y) {
+        return (x << PackedMask.WELL_X.shift) | (y << PackedMask.WELL_Y.shift);
     }
 
     private static int packWellStatus() {
         return -1; // TODO
     }
 
-    private static int packHeadQuarters() {
-        return -1; // TODO
+    private static int packHeadQuarters(int x, int y) {
+        return (1 << 15) | (x << PackedMask.HEADQUARTER_X.shift) | (y << PackedMask.HEADQUARTER_Y.shift);
     }
 
     private static int packAnchor() {
         return -1; // TODO
     }
-
 
     private static int getPage(RobotController rc) throws GameActionException {
         return unpack(rc.readSharedArray(PageLocation.PAGE_NUMBER.index), PackedMask.PAGE_INDEX);
@@ -74,10 +76,13 @@ public class Communications {
         }
     }
 
-    private static boolean addWell(int x, int y) {
+    private static boolean addWell(RobotController rc, int x, int y) throws GameActionException {
         for (int i = PageLocation.WELLS.index; i < PageLocation.WELLS.end; i += PageLocation.WELLS.size) {
             if (pages[PageLocation.WELLS.page][i] == NULL_INDICATOR) {
-                pages[PageLocation.WELLS.page][i] = (x << PackedMask.WELL_X.shift) | (y << PackedMask.WELL_Y.shift);
+                pages[PageLocation.WELLS.page][i] = packWellPosition(x, y);
+                if (getPage(rc) == PageLocation.WELLS.page) {
+                    rc.writeSharedArray(i, pages[PageLocation.WELLS.page][i]);
+                }
                 return true;
             }
         }
@@ -94,7 +99,7 @@ public class Communications {
 
     public static void initPages(RobotController rc) throws GameActionException {
         for (int i = 0; i < pages.length; i++) {
-            pages[i][0] = i;
+            pages[i][0] = packControl(i, 0, 0, 0);
             for (int j = 1; j < PAGE_SIZE; j++) {
                 pages[i][j] = NULL_INDICATOR;
             }
@@ -106,8 +111,12 @@ public class Communications {
 
     public static void iteratePage(RobotController rc) throws GameActionException {
         int pageIndex = getPage(rc);
-        for (int i = 0; i < PAGE_SIZE; i++) {
-            pages[pageIndex][i] = rc.readSharedArray(i);
+        for (int i = 1; i < PAGE_SIZE; i++) {
+            int read = rc.readSharedArray(i);
+            if (read != NULL_INDICATOR) {
+                pages[pageIndex][i] = read;
+                System.out.println("Saved: " + read + ", Index: " + i);
+            }
         }
         pageIndex++;
         pageIndex %= pages.length;
@@ -116,7 +125,13 @@ public class Communications {
         }
     }
 
+    public static void addFriendlyHeadquarters(RobotController rc, int x, int y, int index) throws GameActionException {
+        int packed = packHeadQuarters(x, y);
+        rc.writeSharedArray(PageLocation.HEADQUARTERS.index + index, packed);
+    }
+
     public static void input(RobotController rc, EntityType type, int x, int y) throws GameActionException {
+//        System.out.println("Inputting (" + x + ", " + y + ")");
         if (rc.readSharedArray(PageLocation.INPUT.index) == NULL_INDICATOR) {
             rc.writeSharedArray(PageLocation.INPUT.index, packInput(type.id, x, y));
         }
@@ -130,6 +145,7 @@ public class Communications {
         EntityType type = intToEntityType(unpack(input, PackedMask.INPUT_TYPE));
         int x = unpack(input, PackedMask.INPUT_X);
         int y = unpack(input, PackedMask.INPUT_Y);
+//        System.out.println("Read as (" + x + ", " + y + ")");
         boolean added = false;
         if (type != null) {
             switch (type) {
@@ -137,7 +153,7 @@ public class Communications {
                     added = addAnchor(x, y);
                     break;
                 case WELL:
-                    added = addWell(x, y);
+                    added = addWell(rc, x, y);
                     break;
                 case HEADQUARTER:
                     added = addEnemyBase(x, y);
@@ -174,10 +190,10 @@ public class Communications {
         List<Well> wells = new ArrayList<>();
         for (int i = PageLocation.WELLS.index; i < PageLocation.WELLS.end; i += PageLocation.WELLS.size) {
             int packedLoc = rc.readSharedArray(i);
-            int wellType = unpack(packedLoc, PackedMask.WELL_TYPE);
-            if (wellType == NULL_INDICATOR) {
+            if (packedLoc == NULL_INDICATOR) {
                 break;
             }
+            int wellType = unpack(packedLoc, PackedMask.WELL_TYPE);
             boolean hasAmplifier = unpack(packedLoc, PackedMask.AMPLIFIER_PRESENT) != 0;
             int x = unpack(packedLoc, PackedMask.WELL_X);
             int y = unpack(packedLoc, PackedMask.WELL_Y);

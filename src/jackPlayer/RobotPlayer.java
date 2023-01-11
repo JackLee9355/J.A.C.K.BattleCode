@@ -14,7 +14,6 @@ public strictfp class RobotPlayer {
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
 
-        System.out.println("I'm a " + rc.getType() + " and I just got created! I have health " + rc.getHealth());
         Controller p;
         switch (rc.getType()) {
             case HEADQUARTERS:
@@ -38,8 +37,6 @@ public strictfp class RobotPlayer {
             default:
                 return;
         }
-
-        rc.setIndicatorString("Hello world!");
 
         //noinspection InfiniteLoopStatement
         while (true) {
