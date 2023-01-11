@@ -38,11 +38,5 @@ public abstract class Controller {
 
     }
 
-    protected void readEntireArray(RobotController rc) throws GameActionException {
-        for (int i = 0; i < 64; i++) {
-            sharedArray[i] = rc.readSharedArray(i);
-        }
-    }
-
 
 }
