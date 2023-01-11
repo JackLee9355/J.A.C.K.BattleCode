@@ -145,14 +145,14 @@ public abstract class Controller {
 
         // Frontier (nodes that we could be visiting until finding the closestToTarget location)
         PriorityQueue<Node> frontier = new PriorityQueue<>();
-        Node start = new Node(myLocation, 0 + myLocation.distanceSquaredTo(closestToTarget));
+        Node start = new Node(myLocation, myLocation.distanceSquaredTo(closestToTarget));
         frontier.add(start);
 
         // Came from array stores the shortest and least expensive path given our heuristic
-        int cameFrom[][][] = new int[60][60][2];
+        int[][][] cameFrom = new int[60][60][2];
 
         // Keeps track of the costs so far made in the path
-        int costSoFar[][] = new int[60][60];
+        int[][] costSoFar = new int[60][60];
         for (int[] row : costSoFar) Arrays.fill(row, -1);
 
         // Setting defaults for the path on location (x, y) & its cost
