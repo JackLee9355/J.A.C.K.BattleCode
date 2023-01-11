@@ -80,8 +80,10 @@ public class Communications {
         for (int i = PageLocation.WELLS.index; i < PageLocation.WELLS.end; i += PageLocation.WELLS.size) {
             if (pages[PageLocation.WELLS.page][i] == NULL_INDICATOR) {
                 pages[PageLocation.WELLS.page][i] = packWellPosition(x, y);
+                pages[PageLocation.WELLS.page][i + 1] = 0;
                 if (getPage(rc) == PageLocation.WELLS.page) {
                     rc.writeSharedArray(i, pages[PageLocation.WELLS.page][i]);
+                    rc.writeSharedArray(i + 1, pages[PageLocation.WELLS.page][i + 1]);
                 }
                 return true;
             }
