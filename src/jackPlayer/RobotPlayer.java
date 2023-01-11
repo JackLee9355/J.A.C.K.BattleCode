@@ -2,6 +2,8 @@ package jackPlayer;
 
 import battlecode.common.*;
 
+import java.awt.*;
+
 /**
  * RobotPlayer is the class that describes your main robot strategy.
  * The run() method inside this class is like your main function: this is what we'll call once your robot
@@ -51,6 +53,97 @@ public strictfp class RobotPlayer {
                 e.printStackTrace();
             } finally {
                 Clock.yield();
+            }
+        }
+    }
+
+    public static void generalExplore(RobotController rc) throws GameActionException {
+        if(rc.isMovementReady()){
+        Direction dir = null;
+        int[] nearby = new int[4]; //0-N (up) 1-E (right), 2-S (down), 3-W (left)
+        // +1 for ally robot (to disperse), +1 for opposite direction if enemy robot (to avoid)
+        RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
+        int thisX = rc.getLocation().x;
+        int thisY = rc.getLocation().y;
+        for (RobotInfo robot : nearbyRobots) {
+            int x = robot.location.x;
+            int y = robot.location.y;
+            int diffX = x - thisX; //pos = enemy is N, neg = enemy = S
+            int diffY = y - thisY; //pos = enemy is E, neg = W
+            if (diffX > 0) {
+                nearby[0] += 1;
+            }
+            if (diffX < 0) {
+                nearby[2] += 1;
+            }
+            if (diffY > 0) {
+                nearby[1] += 1;
+            }
+            if (diffY < 0) {
+                nearby[3] += 1;
+            }
+        }
+        boolean N = false;
+        boolean S = false;
+        boolean E = false;
+        boolean W = false;
+        int updown = nearby[0] - nearby[2];
+        int ew = nearby[1] - nearby[3];
+        if (updown > 0) {
+            S = true; //enemies in N
+        } else if (updown < 0) {
+            N = true;
+        }
+        if (ew > 0) {
+            W = true;
+        }
+        if (ew < 0) {
+            E = true;
+        }
+        if(N && E && rc.canMove(Direction.NORTHEAST)){
+            dir = Direction.NORTHEAST;
+        } else if (N && W && rc.canMove((Direction.NORTHWEST))){
+            dir = Direction.NORTHWEST;
+        } else if (S && E && rc.canMove((Direction.SOUTHEAST))){
+            dir = Direction.SOUTHEAST;
+        } else if (S && W && rc.canMove(Direction.SOUTHWEST)){
+            dir = Direction.SOUTHWEST;
+        } else if(N && rc.canMove(Direction.NORTH)){
+            dir = Direction.NORTH;
+        } else if (E && rc.canMove(Direction.EAST)){
+            dir = Direction.EAST;
+        } else if (S && rc.canMove(Direction.SOUTH)){
+            dir = Direction.SOUTH;
+        } else if(W && rc.canMove(Direction.WEST)){
+            dir = Direction.WEST;
+        }
+        if(dir != null ){
+            rc.move(dir); //only moves on space
+        }
+    }
+    }
+    public static void attack(RobotController rc) throws GameActionException {
+        if(rc.isActionReady()){
+            RobotInfo [] enemies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent());
+            int indexAttack = -1;
+            int health = 100;
+            for(int i = 0; i < enemies.length; i++){
+                int enemyHealth = enemies[i].getHealth();
+                if(enemyHealth < health){
+                    indexAttack = i;
+                    health = enemyHealth;
+                }
+            }
+            if(indexAttack >= 0){
+                MapLocation enemyLoc = enemies[indexAttack].getLocation();
+                if(rc.canAttack(enemyLoc)){
+                    rc.attack(enemyLoc);
+                }
+            } else if(enemies.length > 0){ //there exist enemies in the action range, but they are all at full health
+                MapLocation enemyLoc = enemies[0].getLocation();
+                if(rc.canAttack(enemyLoc)){
+                    rc.attack(enemyLoc);
+                }
             }
         }
     }
