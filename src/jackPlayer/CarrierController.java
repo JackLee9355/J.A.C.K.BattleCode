@@ -54,6 +54,12 @@ public class CarrierController extends Controller {
         }
     }
 
+    private void attemptDeposit(RobotController rc) throws GameActionException {
+        if (headquarter.isAdjacentTo(rc.getLocation())) {
+            rc.transferResource(headquarter, wellType, rc.getResourceAmount(wellType));
+        }
+    }
+
     private int totalHeld(RobotController rc) {
         return rc.getResourceAmount(ResourceType.ADAMANTIUM) +
                 rc.getResourceAmount(ResourceType.ELIXIR) +
@@ -64,6 +70,7 @@ public class CarrierController extends Controller {
     public void run(RobotController rc) throws GameActionException {
         super.run(rc);
 
+        assignHQ(rc);
         if (wellLocation == null) {
             assignWell(rc);
             if (wellLocation == null)
@@ -71,11 +78,13 @@ public class CarrierController extends Controller {
         }
 
         attemptCollect(rc);
+        attemptDeposit(rc);
         if (totalHeld(rc) < 40) {
             moveTowards(rc, wellLocation);
         } else {
             moveTowards(rc, headquarter);
         }
         attemptCollect(rc);
+        attemptDeposit(rc);
     }
 }
