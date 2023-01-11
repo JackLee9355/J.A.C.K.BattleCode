@@ -1,11 +1,13 @@
 package jackPlayer;
 
+import jackPlayer.Communications.Communications;
+import jackPlayer.Communications.EntityType;
+import jackPlayer.Communications.Well;
+
 import java.util.*;
+
 import battlecode.common.*;
-import battlecode.common.Direction;
-import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -37,6 +39,26 @@ public abstract class Controller {
     public void run(RobotController rc) throws GameActionException {
         turnCount++;
         myLocation = rc.getLocation();
+    }
+
+    protected void manageWell(RobotController rc, WellInfo wellInfo) throws GameActionException {
+        List<Well> wells;
+        if ((wells = Communications.getWells(rc)) == null) {
+            return;
+        }
+        int index = -1;
+        for (int i = 0; i < wells.size(); i++) {
+            Well w = wells.get(i);
+            if (w.getMapLocation().equals(wellInfo.getMapLocation())) {
+                index = i;
+                break;
+            }
+        }
+        if (index == -1) {
+            Communications.input(rc, EntityType.WELL, wellInfo.getMapLocation().x, wellInfo.getMapLocation().y);
+        } else {
+            // TODO: update info for well
+        }
     }
 
     protected List<MapLocation> adjacentSquares(RobotController rc) throws GameActionException {
@@ -91,7 +113,8 @@ public abstract class Controller {
 
         // Move if no wall is present in the direction && bytecode is available to check
         if (rc.canMove(dir)) {
-            rc.move(dir); alongObstacleDir = null;
+            rc.move(dir);
+            alongObstacleDir = null;
         } else {
             // Set the along the obstacle direction to current direction
             if (alongObstacleDir == null) alongObstacleDir = dir;
@@ -233,6 +256,7 @@ public abstract class Controller {
 
         return false;
     }
+
     public static void generalExplore(RobotController rc) throws GameActionException {
         if (rc.isMovementReady()) {
             Direction dir = null;
@@ -276,24 +300,24 @@ public abstract class Controller {
             if (ew < 0) {
                 E = true;
             }
-            if(N && E && rc.canMove(Direction.NORTHEAST)){
+            if (N && E && rc.canMove(Direction.NORTHEAST)) {
                 dir = Direction.NORTHEAST;
-            } else if (N && W && rc.canMove((Direction.NORTHWEST))){
+            } else if (N && W && rc.canMove((Direction.NORTHWEST))) {
                 dir = Direction.NORTHWEST;
-            } else if (S && E && rc.canMove((Direction.SOUTHEAST))){
+            } else if (S && E && rc.canMove((Direction.SOUTHEAST))) {
                 dir = Direction.SOUTHEAST;
-            } else if (S && W && rc.canMove(Direction.SOUTHWEST)){
+            } else if (S && W && rc.canMove(Direction.SOUTHWEST)) {
                 dir = Direction.SOUTHWEST;
-            } else if(N && rc.canMove(Direction.NORTH)){
+            } else if (N && rc.canMove(Direction.NORTH)) {
                 dir = Direction.NORTH;
-            } else if (E && rc.canMove(Direction.EAST)){
+            } else if (E && rc.canMove(Direction.EAST)) {
                 dir = Direction.EAST;
-            } else if (S && rc.canMove(Direction.SOUTH)){
+            } else if (S && rc.canMove(Direction.SOUTH)) {
                 dir = Direction.SOUTH;
-            } else if(W && rc.canMove(Direction.WEST)){
+            } else if (W && rc.canMove(Direction.WEST)) {
                 dir = Direction.WEST;
             }
-            if(dir != null ){
+            if (dir != null) {
                 rc.move(dir); //only moves on space
             }
         }
