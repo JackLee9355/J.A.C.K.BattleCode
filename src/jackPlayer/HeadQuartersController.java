@@ -31,10 +31,16 @@ public class HeadQuartersController extends Controller {
     public void run(RobotController rc) throws GameActionException {
         super.run(rc); // Common actions
         if (headQuartersIndex == 0) {
+            WellInfo[] wellInfos = rc.senseNearbyWells();
+            for (WellInfo wellInfo : wellInfos) {
+                manageWell(rc, wellInfo);
+            }
             if (turnCount > 2 && turnCount % 2 == 0) {
                 Communications.iteratePage(rc);
             }
+            Communications.processInput(rc);
         }
+
     }
 
 }

@@ -1,10 +1,11 @@
 package jackPlayer;
 
-import battlecode.common.Direction;
-import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
+import battlecode.common.*;
+import jackPlayer.Communications.Communications;
+import jackPlayer.Communications.EntityType;
+import jackPlayer.Communications.Well;
 
+import java.util.List;
 import java.util.Random;
 
 public abstract class Controller {
@@ -35,7 +36,26 @@ public abstract class Controller {
     public void run(RobotController rc) throws GameActionException {
         turnCount++;
         myLocation = rc.getLocation();
+    }
 
+    protected void manageWell(RobotController rc, WellInfo wellInfo) throws GameActionException {
+        List<Well> wells;
+        if ((wells = Communications.getWells(rc)) == null) {
+            return;
+        }
+        int index = -1;
+        for (int i = 0; i < wells.size(); i++) {
+            Well w = wells.get(i);
+            if (w.getMapLocation().equals(wellInfo.getMapLocation())) {
+                index = i;
+                break;
+            }
+        }
+        if (index == -1) {
+            Communications.input(rc, EntityType.WELL, wellInfo.getMapLocation().x, wellInfo.getMapLocation().y);
+        } else {
+            // TODO: update info for well
+        }
     }
 
 
