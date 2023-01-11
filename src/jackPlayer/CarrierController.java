@@ -1,82 +1,90 @@
 package jackPlayer;
 
 import battlecode.common.*;
+import jackPlayer.Communications.Communications;
+import jackPlayer.Communications.Headquarter;
+import jackPlayer.Communications.Well;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class CarrierController extends Controller {
 
-    public CarrierController(RobotController rc) {
-        super(rc);
+    private MapLocation headquarter;
+    private MapLocation wellLocation;
+    private ResourceType wellType;
 
+    public CarrierController(RobotController rc) throws GameActionException {
+        super(rc);
+        assignWell(rc);
+        assignHQ(rc);
+    }
+
+    private void assignWell(RobotController rc) throws GameActionException {
+        List<Well> wells = Communications.getWells(rc);
+        if (wells == null)
+            return; // TODO: Add logic here beside just waiting
+
+        MapLocation curLoc = rc.getLocation();
+        // If this is too expensive switch to repeatedly taking the minimum
+        Collections.sort(wells, Comparator.comparingInt(o -> curLoc.distanceSquaredTo(o.getMapLocation())));
+        for (Well well : wells) {
+            if (well.getWorkerCount() <= 15 || well.getPressure() < 5) {
+                wellLocation = well.getMapLocation();
+                wellType = well.getType();
+                Communications.incrementWellWorkers(rc, well);
+            }
+        }
+    }
+
+    private void assignHQ(RobotController rc) throws GameActionException {
+        List<Headquarter> headQuarters = Communications.getHeadQuarters(rc);
+        if (headQuarters == null && headQuarters.size() != 0) {
+
+        } else {
+            MapLocation curLoc = rc.getLocation();
+            headquarter = headQuarters.stream().min(
+                    Comparator.comparingInt(o -> curLoc.distanceSquaredTo(o.getMapLocation()))
+            ).get().getMapLocation();
+        }
+    }
+
+    private void attemptCollect(RobotController rc) throws GameActionException {
+        if (rc.canCollectResource(wellLocation, -1)) {
+            rc.collectResource(wellLocation, -1);
+        }
+    }
+
+    private void attemptDeposit(RobotController rc) throws GameActionException {
+        if (headquarter.isAdjacentTo(rc.getLocation())) {
+            rc.transferResource(headquarter, wellType, rc.getResourceAmount(wellType));
+        }
+    }
+
+    private int totalHeld(RobotController rc) {
+        return rc.getResourceAmount(ResourceType.ADAMANTIUM) +
+                rc.getResourceAmount(ResourceType.ELIXIR) +
+                rc.getResourceAmount(ResourceType.MANA);
     }
 
     @Override
     public void run(RobotController rc) throws GameActionException {
         super.run(rc);
-        if (rc.getAnchor() != null) {
-            // If I have an anchor singularly focus on getting it to the first island I see
-            int[] islands = rc.senseNearbyIslands();
-            Set<MapLocation> islandLocs = new HashSet<>();
-            for (int id : islands) {
-                MapLocation[] thisIslandLocs = rc.senseNearbyIslandLocations(id);
-                islandLocs.addAll(Arrays.asList(thisIslandLocs));
-            }
-            if (islandLocs.size() > 0) {
-                MapLocation islandLocation = islandLocs.iterator().next();
-                rc.setIndicatorString("Moving my anchor towards " + islandLocation);
-                while (!rc.getLocation().equals(islandLocation)) {
-                    Direction dir = rc.getLocation().directionTo(islandLocation);
-                    if (rc.canMove(dir)) {
-                        rc.move(dir);
-                    }
-                }
-                if (rc.canPlaceAnchor()) {
-                    rc.setIndicatorString("Huzzah, placed anchor!");
-                    rc.placeAnchor();
-                }
-            }
-        }
-        // Try to gather from squares around us.
-        MapLocation me = rc.getLocation();
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dy = -1; dy <= 1; dy++) {
-                MapLocation wellLocation = new MapLocation(me.x + dx, me.y + dy);
-                if (rc.canCollectResource(wellLocation, -1)) {
-                    if (rng.nextBoolean()) {
-                        rc.collectResource(wellLocation, -1);
-                        rc.setIndicatorString("Collecting, now have, AD:" +
-                                rc.getResourceAmount(ResourceType.ADAMANTIUM) +
-                                " MN: " + rc.getResourceAmount(ResourceType.MANA) +
-                                " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
-                    }
-                }
-            }
-        }
-        // Occasionally try out the carriers attack
-        if (rng.nextInt(20) == 1) {
-            RobotInfo[] enemyRobots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-            if (enemyRobots.length > 0) {
-                if (rc.canAttack(enemyRobots[0].location)) {
-                    rc.attack(enemyRobots[0].location);
-                }
-            }
+
+        assignHQ(rc);
+        if (wellLocation == null) {
+            assignWell(rc);
+            if (wellLocation == null)
+                return;
         }
 
-        // If we can see a well, move towards it
-        WellInfo[] wells = rc.senseNearbyWells();
-        if (wells.length > 1 && rng.nextInt(3) == 1) {
-            WellInfo well_one = wells[1];
-            Direction dir = me.directionTo(well_one.getMapLocation());
-            if (rc.canMove(dir))
-                rc.move(dir);
+        attemptCollect(rc);
+        attemptDeposit(rc);
+        if (totalHeld(rc) < 40) {
+            moveTowards(rc, wellLocation);
+        } else {
+            moveTowards(rc, headquarter);
         }
-        // Also try to move randomly.
-        Direction dir = directions[rng.nextInt(directions.length)];
-        if (rc.canMove(dir)) {
-            rc.move(dir);
-        }
+        attemptCollect(rc);
+        attemptDeposit(rc);
     }
 }
