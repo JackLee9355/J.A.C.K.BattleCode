@@ -4,30 +4,35 @@ import battlecode.common.*;
 
 public class HeadQuartersController extends Controller {
 
-    public HeadQuartersController() {
-        // init things
+    int[][] pages;
+    int headQuartersIndex;
+
+
+    public HeadQuartersController(RobotController rc) {
+        super(rc);
+        try {
+            for (int i = 2; i < 6; i++) {
+                pages[0][i] = rc.readSharedArray(i);
+            }
+            for (headQuartersIndex = 0; headQuartersIndex < 4; headQuartersIndex++) {
+                if (pages[0][headQuartersIndex + 2] == 0) {
+                    break;
+                }
+            }
+        } catch (GameActionException e) {
+            System.out.println(rc.getType() + "Exception, cannot initialize");
+        }
     }
 
     public void run(RobotController rc) throws GameActionException {
-        // Pick a direction to build in.
-        Direction dir = directions[rng.nextInt(directions.length)];
-        MapLocation newLoc = rc.getLocation().add(dir);
-        if (rc.canBuildAnchor(Anchor.STANDARD)) {
-            // If we can build an anchor do it!
-            rc.buildAnchor(Anchor.STANDARD);
-            rc.setIndicatorString("Building anchor! " + rc.getAnchor());
-        }
-        if (rng.nextBoolean()) {
-            // Let's try to build a carrier.
-            rc.setIndicatorString("Trying to build a carrier");
-            if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
-                rc.buildRobot(RobotType.CARRIER, newLoc);
+        super.run(rc); // Common actions
+        if (headQuartersIndex == 0) {
+            int[] array = new int[64];
+            for (int i = 0; i < 64; i++) {
+                array[i] = rc.readSharedArray(i);
             }
-        } else {
-            // Let's try to build a launcher.
-            rc.setIndicatorString("Trying to build a launcher");
-            if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
-                rc.buildRobot(RobotType.LAUNCHER, newLoc);
+            if (turnCount != 0) {
+
             }
         }
     }

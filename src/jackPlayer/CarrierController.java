@@ -8,13 +8,14 @@ import java.util.Set;
 
 public class CarrierController extends Controller {
 
-    public CarrierController() {
+    public CarrierController(RobotController rc) {
+        super(rc);
 
     }
 
     @Override
     public void run(RobotController rc) throws GameActionException {
-        turnCount++;
+        super.run(rc);
         if (rc.getAnchor() != null) {
             // If I have an anchor singularly focus on getting it to the first island I see
             int[] islands = rc.senseNearbyIslands();

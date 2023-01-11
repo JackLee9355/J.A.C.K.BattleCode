@@ -13,26 +13,25 @@ public strictfp class RobotPlayer {
     public static void run(RobotController rc) throws GameActionException {
 
         System.out.println("I'm a " + rc.getType() + " and I just got created! I have health " + rc.getHealth());
-
         Controller p;
         switch (rc.getType()) {
             case HEADQUARTERS:
-                p = new HeadQuartersController();
+                p = new HeadQuartersController(rc);
                 break;
             case CARRIER:
-                p = new CarrierController();
+                p = new CarrierController(rc);
                 break;
             case LAUNCHER:
-                p = new LauncherController();
+                p = new LauncherController(rc);
                 break;
             case BOOSTER:
-                p = new BoosterController();
+                p = new BoosterController(rc);
                 break;
             case DESTABILIZER:
-                p = new DestabilizerController();
+                p = new DestabilizerController(rc);
                 break;
             case AMPLIFIER:
-                p = new AmplifierController();
+                p = new AmplifierController(rc);
                 break;
             default:
                 return;
@@ -40,6 +39,7 @@ public strictfp class RobotPlayer {
 
         rc.setIndicatorString("Hello world!");
 
+        //noinspection InfiniteLoopStatement
         while (true) {
             try {
                 p.run(rc);
