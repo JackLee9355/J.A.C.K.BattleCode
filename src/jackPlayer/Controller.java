@@ -30,6 +30,7 @@ public abstract class Controller {
             Direction.WEST,
             Direction.NORTHWEST,
     };
+    protected Map<MapLocation, WellInfo> wellCache = new HashMap<>();
 
     public Controller(RobotController rc) {
         mapWidth = rc.getMapWidth();
@@ -39,6 +40,10 @@ public abstract class Controller {
     public void run(RobotController rc) throws GameActionException {
         turnCount++;
         myLocation = rc.getLocation();
+        cacheNewWells(rc);
+        if (turnCount > 1 && rc.canWriteSharedArray(0, 0)) { // Worried about weird behavior on master hq
+            writeWellCache(rc);
+        }
     }
 
     protected void manageWell(RobotController rc, WellInfo wellInfo) throws GameActionException {
@@ -72,6 +77,32 @@ public abstract class Controller {
     protected void readEntireArray(RobotController rc) throws GameActionException {
         for (int i = 0; i < 64; i++) {
             sharedArray[i] = rc.readSharedArray(i);
+        }
+    }
+
+    private void writeWellCache(RobotController rc) throws GameActionException {
+        Set<MapLocation> storedWells = new HashSet<>();
+        List<Well> wells = Communications.getWells(rc);
+        if (wells == null)
+            return;
+
+        for (Well well : wells) {
+            storedWells.add(well.getMapLocation());
+        }
+
+        for (MapLocation wellLoc : wellCache.keySet()) {
+            if (!storedWells.contains(wellLoc)) {
+                manageWell(rc, wellCache.get(wellLoc));
+                System.out.println("Managing new well at location: " + wellLoc.x + ", " + wellLoc.y);
+                break; // We can't add more than one anyway
+            }
+        }
+        // wellCache.clear(); Can be added for performance later if we didn't break out of the loop
+    }
+
+    private void cacheNewWells(RobotController rc) throws GameActionException {
+        for (WellInfo wellInfo : rc.senseNearbyWells()) {
+            wellCache.put(wellInfo.getMapLocation(), wellInfo);
         }
     }
 
