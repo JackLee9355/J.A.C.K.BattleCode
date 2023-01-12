@@ -73,10 +73,15 @@ public class AmplifierController extends Controller {
                         break;
                     }
                 }
+                if(!found){
+                    //manageWell
+                    if(assignedWell == null){
+                        assignedWell = well;
+                        assignedWellLoc = well.getMapLocation();
+                    }
+                }
             }
-            if(!found){
-                //manageWell
-            }
+
         }
 
     }
