@@ -214,6 +214,18 @@ public class Communications {
         // TODO: Need to write a generalized pack function
         rc.writeSharedArray(countIndex, (newCount << 4) & (well.getPressure()));
     }
+
+    public static int getCoordination(RobotController rc) throws GameActionException {
+        return unpack(rc.readSharedArray(PageLocation.PAGE_NUMBER.index), PackedMask.COORDINATION);
+    }
+
+    public static int getFocusX(RobotController rc) throws GameActionException {
+        return unpack(rc.readSharedArray(PageLocation.PAGE_NUMBER.index), PackedMask.FOCUS_X) * 2;
+    }
+
+    public static int getFocusY(RobotController rc) throws GameActionException {
+        return unpack(rc.readSharedArray(PageLocation.PAGE_NUMBER.index), PackedMask.FOCUS_Y) * 2;
+    }
 }
 
 
