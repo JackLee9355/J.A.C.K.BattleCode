@@ -63,8 +63,19 @@ public class CarrierController extends Controller {
     }
 
     private void attemptDeposit(RobotController rc) throws GameActionException {
-        if (headquarter.isAdjacentTo(rc.getLocation()) && wellType != null) {
-            rc.transferResource(headquarter, wellType, rc.getResourceAmount(wellType));
+        if (headquarter.isAdjacentTo(rc.getLocation())) {
+            int exAmount = rc.getResourceAmount(ResourceType.ELIXIR);
+            if (exAmount > 0) {
+                rc.transferResource(headquarter, ResourceType.ELIXIR, exAmount);
+            }
+            int adAmount = rc.getResourceAmount(ResourceType.ADAMANTIUM);
+            if (adAmount > 0) {
+                rc.transferResource(headquarter, ResourceType.ADAMANTIUM, adAmount);
+            }
+            int mnAmount = rc.getResourceAmount(ResourceType.MANA);
+            if (mnAmount > 0) {
+                rc.transferResource(headquarter, ResourceType.MANA, mnAmount);
+            }
         }
     }
 

@@ -20,15 +20,10 @@ public abstract class Controller {
     protected final int[] sharedArray = new int[64];
     protected Direction alongObstacleDir = null;
     protected static final Random rng = new Random(6147);
-    int[][] DIRS = new int[][]{
-            {0, 1},
-            {1, 0},
-            {1, 1},
-            {0, -1},
-            {-1, 0},
-            {-1, -1},
-            {1, -1},
-            {-1, 1}
+    int[][] DIRS = new int[][] {
+        {0, 1}, {1, 0}, {1, 1},
+        {0, -1}, {-1, 0}, {-1, -1},
+        {1, -1}, {-1, 1}
     };
     protected static final Direction[] directions = {
             Direction.NORTH,
@@ -409,13 +404,12 @@ public abstract class Controller {
             int ew = nearby[1] - nearby[3];
             if (updown > 0) {
                 S = true; //enemies in N
-            } else if (updown < 0) {
+            }else {
                 N = true;
             }
             if (ew > 0) {
                 W = true;
-            }
-            if (ew < 0) {
+            } else {
                 E = true;
             }
             if (N && E && rc.canMove(Direction.NORTHEAST)) {

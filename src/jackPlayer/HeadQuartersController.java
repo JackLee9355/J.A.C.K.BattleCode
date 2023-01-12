@@ -76,6 +76,8 @@ public class HeadQuartersController extends Controller {
             }
         }
         if (built)
+            carriersConstructed = 0;
+            launchersConstructed = 0;
             amplifiersConstructed++;
     }
 
