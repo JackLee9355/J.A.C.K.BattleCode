@@ -342,7 +342,7 @@ public abstract class Controller {
             front++;
         }
 
-        // Set the start to point to nothing (so there isn't a loop in the path thats followed back)
+        // Set the start to point to nothing (so there isn't a loop in the path that's followed back)
         cameFrom[queue[0][0]][queue[0][1]][0] = -1;
         cameFrom[queue[0][0]][queue[0][1]][1] = -1;
 
