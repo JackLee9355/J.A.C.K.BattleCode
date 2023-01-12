@@ -47,16 +47,17 @@ public class AmplifierController extends Controller {
             MapLocation curr = rc.getLocation();
             if (curr.distanceSquaredTo(assignedWellLoc) > 2 && rc.canMove(curr.directionTo(assignedWellLoc))) {
                 rc.move(curr.directionTo(assignedWellLoc));
-            } else if (curr.distanceSquaredTo(assignedWellLoc) <= 2) {
-                updateWellInfo(rc);
+            } else if (curr.distanceSquaredTo(assignedWellLoc) <= 2) { //arrived at well
+                searchForWells(rc); //see if there are any other nearby wells to add and to get the WellInfo of the assigned well
+
             }
         }
     }
 
-    //update the well info and search for nearby wells
-    public static void updateWellInfo(RobotController rc) throws GameActionException {
-        searchForWells(rc);
+    //update the well info
+    public static void updateWellInfo(RobotController rc, WellInfo well) throws GameActionException {
         //manageWell and update who it is assigned to
+        Controller.manageWell(rc, well);
 
     }
 
@@ -65,16 +66,17 @@ public class AmplifierController extends Controller {
         wells = Communications.getWells(rc);
         if(!temp.equals(nearbyWells)){ //means we found a new one
             nearbyWells = temp;
-            boolean found = false;
             for(Well well : wells){
+                WellInfo wellToUpdate = null;
                 for(WellInfo nearbyWell : nearbyWells){
-                    if(nearbyWell.getMapLocation().distanceSquaredTo(well.getMapLocation()) > 0){
-                        found = true;
+                    if(nearbyWell.getMapLocation().distanceSquaredTo(well.getMapLocation()) > 0 || nearbyWell.getMapLocation().distanceSquaredTo(assignedWellLoc) == 0){
+                        wellToUpdate = nearbyWell;
                         break;
                     }
                 }
-                if(!found){
+                if(wellToUpdate != null){
                     //manageWell
+                    updateWellInfo(rc, wellToUpdate);
                     if(assignedWell == null){
                         assignedWell = well;
                         assignedWellLoc = well.getMapLocation();

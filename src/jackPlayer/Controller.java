@@ -41,7 +41,7 @@ public abstract class Controller {
         myLocation = rc.getLocation();
     }
 
-    protected void manageWell(RobotController rc, WellInfo wellInfo) throws GameActionException {
+    protected static void manageWell(RobotController rc, WellInfo wellInfo) throws GameActionException {
         List<Well> wells;
         if ((wells = Communications.getWells(rc)) == null) {
             return;
