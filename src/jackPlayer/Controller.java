@@ -291,13 +291,12 @@ public abstract class Controller {
             int ew = nearby[1] - nearby[3];
             if (updown > 0) {
                 S = true; //enemies in N
-            } else if (updown < 0) {
+            }else {
                 N = true;
             }
             if (ew > 0) {
                 W = true;
-            }
-            if (ew < 0) {
+            } else {
                 E = true;
             }
             if (N && E && rc.canMove(Direction.NORTHEAST)) {
