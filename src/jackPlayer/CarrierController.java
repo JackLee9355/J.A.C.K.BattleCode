@@ -71,7 +71,7 @@ public class CarrierController extends Controller {
                 return;
             }
             int adAmount = rc.getResourceAmount(ResourceType.ADAMANTIUM);
-            if (adAmount > 0) {
+            if (adAmount > 0 && rc.isActionReady()) {
                 rc.transferResource(headquarter, ResourceType.ADAMANTIUM, adAmount);
                 return;
             }
