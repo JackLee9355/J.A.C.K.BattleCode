@@ -12,18 +12,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public abstract class Controller {
+public abstract strictfp class Controller {
     protected int turnCount = 0;
     protected final int mapWidth;
     protected final int mapHeight;
     protected MapLocation myLocation;
-    protected final int[] sharedArray = new int[64];
     protected Direction alongObstacleDir = null;
     protected static final Random rng = new Random(6147);
-    int[][] DIRS = new int[][] {
-        {0, 1}, {1, 0}, {1, 1},
-        {0, -1}, {-1, 0}, {-1, -1},
-        {1, -1}, {-1, 1}
+    private final int[][] map; // [x][y]
+    private static final int[][] DIRS = new int[][]{
+            {0, 1}, {1, 0}, {1, 1},
+            {0, -1}, {-1, 0}, {-1, -1},
+            {1, -1}, {-1, 1}
     };
     protected static final Direction[] directions = {
             Direction.NORTH,
@@ -39,6 +39,7 @@ public abstract class Controller {
     public Controller(RobotController rc) {
         mapWidth = rc.getMapWidth();
         mapHeight = rc.getMapHeight();
+        map = new int[mapWidth][mapHeight];
     }
 
     public void run(RobotController rc) throws GameActionException {
@@ -72,12 +73,6 @@ public abstract class Controller {
             locations.add(rc.getLocation().add(dir));
         }
         return locations;
-    }
-
-    protected void readEntireArray(RobotController rc) throws GameActionException {
-        for (int i = 0; i < 64; i++) {
-            sharedArray[i] = rc.readSharedArray(i);
-        }
     }
 
     public MapLocation closestLocation(MapLocation[] locations, MapLocation relative, MapLocation target) throws GameActionException {
@@ -172,7 +167,7 @@ public abstract class Controller {
         // Frontier (nodes that we could be visiting until finding the closestToTarget location)
         PriorityQueue<Node> frontier = new PriorityQueue<>();
         Node start = new Node(myLocation, Math.max(Math.abs(myLocation.x - closestToTarget.x),
-                                                   Math.abs(myLocation.y- closestToTarget.y)));
+                Math.abs(myLocation.y - closestToTarget.y)));
         frontier.add(start);
 
         System.out.println("ByteCode after priority queue: " + Clock.getBytecodeNum());
@@ -370,67 +365,36 @@ public abstract class Controller {
         return false;
     }
 
-    public static void generalExplore(RobotController rc) throws GameActionException {
+    private static double dotProduct(double[] a, double[] b) {
+        return a[0] * b[0] + a[1] * b[1];
+    }
+
+    public void generalExplore(RobotController rc) throws GameActionException {
         if (rc.isMovementReady()) {
-            Direction dir = null;
-            int[] nearby = new int[4]; //0-N (up) 1-E (right), 2-S (down), 3-W (left)
-            // +1 for ally robot (to disperse), +1 for opposite direction if enemy robot (to avoid)
-            RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
-            int thisX = rc.getLocation().x;
-            int thisY = rc.getLocation().y;
-            for (RobotInfo robot : nearbyRobots) {
-                int x = robot.location.x;
-                int y = robot.location.y;
-                int diffX = x - thisX; //pos = enemy is N, neg = enemy = S
-                int diffY = y - thisY; //pos = enemy is E, neg = W
-                if (diffX > 0) {
-                    nearby[0] += 1;
-                }
-                if (diffX < 0) {
-                    nearby[2] += 1;
-                }
-                if (diffY > 0) {
-                    nearby[1] += 1;
-                }
-                if (diffY < 0) {
-                    nearby[3] += 1;
+            RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam()); // TODO: Clouds
+            Direction dir = directions[rng.nextInt(8)];
+            double[] vector = new double[]{dir.dx, dir.dx};
+            for (RobotInfo r : robots) {
+                MapLocation loc = r.location;
+                int dx = loc.x - myLocation.x;
+                int dy = loc.y - myLocation.y;
+                double inverse = 1.2 / (dx * dx + dy * dy);
+                vector[0] -= dx * inverse;
+                vector[1] -= dy * inverse;
+            }
+            double max = Double.MIN_VALUE;
+            for (Direction d : directions) {
+                MapLocation target = myLocation.add(d);
+                if (rc.onTheMap(target) && rc.sensePassability(target) && !rc.isLocationOccupied(target)) {
+                    double dot = dotProduct(new double[]{d.dx, d.dy}, vector);
+                    if (dot > max) {
+                        dir = d;
+                        max = dot;
+                    }
                 }
             }
-            boolean N = false;
-            boolean S = false;
-            boolean E = false;
-            boolean W = false;
-            int updown = nearby[0] - nearby[2];
-            int ew = nearby[1] - nearby[3];
-            if (updown > 0) {
-                S = true; //enemies in N
-            }else {
-                N = true;
-            }
-            if (ew > 0) {
-                W = true;
-            } else {
-                E = true;
-            }
-            if (N && E && rc.canMove(Direction.NORTHEAST)) {
-                dir = Direction.NORTHEAST;
-            } else if (N && W && rc.canMove((Direction.NORTHWEST))) {
-                dir = Direction.NORTHWEST;
-            } else if (S && E && rc.canMove((Direction.SOUTHEAST))) {
-                dir = Direction.SOUTHEAST;
-            } else if (S && W && rc.canMove(Direction.SOUTHWEST)) {
-                dir = Direction.SOUTHWEST;
-            } else if (N && rc.canMove(Direction.NORTH)) {
-                dir = Direction.NORTH;
-            } else if (E && rc.canMove(Direction.EAST)) {
-                dir = Direction.EAST;
-            } else if (S && rc.canMove(Direction.SOUTH)) {
-                dir = Direction.SOUTH;
-            } else if (W && rc.canMove(Direction.WEST)) {
-                dir = Direction.WEST;
-            }
-            if (dir != null) {
-                rc.move(dir); //only moves on space
+            if (rc.canMove(dir)) {
+                rc.move(dir);
             }
         }
     }
