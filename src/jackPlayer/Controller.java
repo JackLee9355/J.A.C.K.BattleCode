@@ -371,27 +371,25 @@ public abstract strictfp class Controller {
 
     public void generalExplore(RobotController rc) throws GameActionException {
         if (rc.isMovementReady()) {
-            RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().visionRadiusSquared, rc.getTeam()); // TODO: Clouds
+            RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam()); // TODO: Clouds
             Direction dir = directions[rng.nextInt(8)];
-            if (robots != null) {
-                double[] vector = new double[]{0, 0};
-                for (RobotInfo r : robots) {
-                    MapLocation loc = r.location;
-                    int dx = loc.x - myLocation.x;
-                    int dy = loc.y - myLocation.y;
-                    double inverse = 1.0 / (dx * dx + dy * dy);
-                    vector[0] -= dx * inverse;
-                    vector[1] -= dy * inverse;
-                }
-                double max = Double.MIN_VALUE;
-                for (Direction d : directions) {
-                    MapLocation target = myLocation.add(d);
-                    if (rc.onTheMap(target) && !rc.isLocationOccupied(target)) {
-                        double dot = dotProduct(new double[]{d.dx, d.dy}, vector);
-                        if (dot > max) {
-                            dir = d;
-                            max = dot;
-                        }
+            double[] vector = new double[]{dir.dx, dir.dx};
+            for (RobotInfo r : robots) {
+                MapLocation loc = r.location;
+                int dx = loc.x - myLocation.x;
+                int dy = loc.y - myLocation.y;
+                double inverse = 1.2 / (dx * dx + dy * dy);
+                vector[0] -= dx * inverse;
+                vector[1] -= dy * inverse;
+            }
+            double max = Double.MIN_VALUE;
+            for (Direction d : directions) {
+                MapLocation target = myLocation.add(d);
+                if (rc.onTheMap(target) && rc.sensePassability(target) && !rc.isLocationOccupied(target)) {
+                    double dot = dotProduct(new double[]{d.dx, d.dy}, vector);
+                    if (dot > max) {
+                        dir = d;
+                        max = dot;
                     }
                 }
             }
