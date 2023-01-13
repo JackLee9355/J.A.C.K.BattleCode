@@ -117,7 +117,7 @@ public class Communications {
             int read = rc.readSharedArray(i);
             if (read != NULL_INDICATOR) {
                 pages[pageIndex][i] = read;
-                System.out.println("Saved: " + read + ", Index: " + i);
+//                System.out.println("Saved: " + read + ", Index: " + i);
             }
         }
         pageIndex++;

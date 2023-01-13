@@ -12,14 +12,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public abstract class Controller {
+public abstract strictfp class Controller {
     protected int turnCount = 0;
     protected final int mapWidth;
     protected final int mapHeight;
     protected MapLocation myLocation;
-    protected final int[] sharedArray = new int[64];
     protected Direction alongObstacleDir = null;
     protected static final Random rng = new Random(6147);
+    private final int[][] map; // [x][y]
+    private static final int[][] DIRS = new int[][]{
+            {0, 1}, {1, 0}, {1, 1},
+            {0, -1}, {-1, 0}, {-1, -1},
+            {1, -1}, {-1, 1}
+    };
     protected static final Direction[] directions = {
             Direction.NORTH,
             Direction.NORTHEAST,
@@ -35,6 +40,7 @@ public abstract class Controller {
     public Controller(RobotController rc) {
         mapWidth = rc.getMapWidth();
         mapHeight = rc.getMapHeight();
+        map = new int[mapWidth][mapHeight];
     }
 
     public void run(RobotController rc) throws GameActionException {
@@ -119,15 +125,6 @@ public abstract class Controller {
         return closestToTarget;
     }
 
-    public MapLocation[] enemiesInVision(RobotController rc, int visionRadiusSquared, Team enemyTeam) throws GameActionException {
-        RobotInfo[] enemies = rc.senseNearbyRobots(visionRadiusSquared, enemyTeam);
-        MapLocation[] enemyLocations = new MapLocation[enemies.length];
-        for (int i = 0; i < enemies.length; i++) {
-            enemyLocations[i] = enemies[i].location;
-        }
-        return enemyLocations;
-    }
-
     public boolean moveTowards(RobotController rc, MapLocation target) throws GameActionException {
         // Cool down active, can't move
         if (!rc.isMovementReady()) {
@@ -182,7 +179,7 @@ public abstract class Controller {
         }
     }
 
-    // A Star Implementation
+    // A Star Implementation (NOT WORKING)
     // 3 costs:
     // G-cost = distance from starting node
     // H-cost = distance from end node
@@ -199,14 +196,18 @@ public abstract class Controller {
         }
 
         // Determine all the locations that can be viewed by the robot
-        MapLocation[] allLocations = rc.getAllLocationsWithinRadiusSquared(myLocation, rc.getType().visionRadiusSquared);
+        MapLocation[] allLocations = rc.getAllLocationsWithinRadiusSquared(myLocation, 3);
         MapLocation closestToTarget = closestLocation(allLocations, myLocation, target);
+        System.out.println("Tiles: " + allLocations.length);
+        System.out.println("ByteCode after locations: " + Clock.getBytecodeNum());
 
         // Frontier (nodes that we could be visiting until finding the closestToTarget location)
         PriorityQueue<Node> frontier = new PriorityQueue<>();
-        Node start = new Node(myLocation, Math.max(Math.abs(myLocation.x - closestToTarget.x), Math.abs(myLocation.y- closestToTarget.y)));
+        Node start = new Node(myLocation, Math.max(Math.abs(myLocation.x - closestToTarget.x),
+                Math.abs(myLocation.y - closestToTarget.y)));
         frontier.add(start);
 
+        System.out.println("ByteCode after priority queue: " + Clock.getBytecodeNum());
         // Came from array stores the shortest and least expensive path given our heuristic
         int[][][] cameFrom = new int[60][60][2];
         for (int i = 0; i < 60; i++) {
@@ -225,9 +226,12 @@ public abstract class Controller {
         cameFrom[myLocation.x][myLocation.y][1] = -1;
         costSoFar[myLocation.x][myLocation.y] = 0;
 
+        System.out.println("ByteCode after initialization: " + Clock.getBytecodeNum());
+
         // Iterate until the frontier is completely empty or a path is found
         while (!frontier.isEmpty()) {
             Node curr = frontier.poll();
+            System.out.println("ByteCode after poll: " + Clock.getBytecodeNum());
             // Path is found, break and just flow the head of the path (closestToTarget)
             // back to start (stop right before)
             if (curr.location.equals(closestToTarget)) {
@@ -239,7 +243,7 @@ public abstract class Controller {
                 int currX = curr.location.x, currY = curr.location.y;
                 MapLocation next = new MapLocation(currX, currY).add(dir);
 
-                if (!rc.canSenseLocation(next)) {
+                if (next.distanceSquaredTo(myLocation) > 3) {
                     continue;
                 }
 
@@ -263,6 +267,8 @@ public abstract class Controller {
                     cameFrom[next.x][next.y][1] = currY;
                 }
             }
+            System.out.println("priority length: " + frontier.size());
+            System.out.println("ByteCode after viewing all 8 directions of a single square: " + Clock.getBytecodeNum());
         }
 
         if (costSoFar[closestToTarget.x][closestToTarget.y] == -1) {
@@ -288,67 +294,144 @@ public abstract class Controller {
         return false;
     }
 
-    public static void generalExplore(RobotController rc) throws GameActionException {
+    public boolean moveTowardsBFS(RobotController rc, MapLocation target) throws GameActionException {
+
+        rc.setIndicatorString("Pathing");
+
+        // Cool down active, can't move
+        if (!rc.isMovementReady()) {
+            return false;
+        }
+
+        // Verify it's not at target location
+        if (myLocation.equals(target)) {
+            return true;
+        }
+
+        // Frontier (nodes that we could be visiting until finding the closestToTarget location)
+        int[] dest = {target.x, target.y};
+        int[][] queue = new int[10000][2];
+        int front = 0, rear = 1;
+
+        queue[0][0] = myLocation.x;
+        queue[0][1] = myLocation.y;
+
+        // Came from array stores the shortest and least expensive path given our heuristic
+        int[][][] cameFrom = new int[60][60][2];
+        for (int i = 0; i < 60; i++) {
+            for (int j = 0; j < 60; j++) {
+                cameFrom[i][j][0] = -1;
+                cameFrom[i][j][1] = -1;
+            }
+        }
+
+        int[] closest = {queue[0][0], queue[0][1]};
+        int closestDistance = Math.max(Math.abs(closest[0] - dest[0]), Math.abs(closest[1] - dest[1]));
+
+        // Iterate until the frontier is completely empty or a path is found
+        while (front != rear) {
+            int[] curr = {queue[front][0], queue[front][1]};
+
+            // Iterate through all 8 directions && build the path
+            for (int[] dir : DIRS) {
+
+                MapLocation next = new MapLocation(curr[0] + dir[0], curr[1] + dir[1]);
+
+                // Not viewable or on the map
+                if (!rc.canSenseLocation(next)) {
+                    continue;
+                }
+
+                // Already visited
+                if (cameFrom[next.x][next.y][0] != -1) {
+                    continue;
+                }
+
+                // Obstructed
+                if (!rc.sensePassability(next)) {
+                    continue;
+                }
+
+                // Set it as visited and add it to queue while updating rear
+                cameFrom[next.x][next.y][0] = curr[0];
+                cameFrom[next.x][next.y][1] = curr[1];
+                queue[rear][0] = next.x;
+                queue[rear][1] = next.y;
+
+                // Compute relative distance from the current node being search to the destination
+                int distance = Math.max(Math.abs(queue[rear][0] - dest[0]), Math.abs(queue[rear][1] - dest[1]));
+
+                // Compare if it's less than the closest distance (NOTE: if distance == 0, that means it's the target)
+                if (distance < closestDistance) {
+                    closest[0] = queue[rear][0];
+                    closest[1] = queue[rear][1];
+                    closestDistance = distance;
+                }
+
+                rear++;
+            }
+
+            front++;
+        }
+
+        // Set the start to point to nothing (so there isn't a loop in the path thats followed back)
+        cameFrom[queue[0][0]][queue[0][1]][0] = -1;
+        cameFrom[queue[0][0]][queue[0][1]][1] = -1;
+
+        // Find the moveSpot right before the start location by following the path back
+        int[] moveSpot = {closest[0], closest[1]};
+        int[] curr = {closest[0], closest[1]};
+        while (cameFrom[curr[0]][curr[1]][0] >= 0) {
+            int parentX = cameFrom[curr[0]][curr[1]][0];
+            int parentY = cameFrom[curr[0]][curr[1]][1];
+
+            moveSpot[0] = curr[0];
+            moveSpot[1] = curr[1];
+
+            curr[0] = parentX;
+            curr[1] = parentY;
+        }
+
+        // Move in that direction
+        Direction dir = myLocation.directionTo(new MapLocation(moveSpot[0], moveSpot[1]));
+        if (rc.canMove(dir)) {
+            rc.move(dir);
+            return true;
+        }
+
+        return false;
+    }
+
+    private static double dotProduct(double[] a, double[] b) {
+        return a[0] * b[0] + a[1] * b[1];
+    }
+
+    public void generalExplore(RobotController rc) throws GameActionException {
         if (rc.isMovementReady()) {
-            Direction dir = null;
-            int[] nearby = new int[4]; //0-N (up) 1-E (right), 2-S (down), 3-W (left)
-            // +1 for ally robot (to disperse), +1 for opposite direction if enemy robot (to avoid)
-            RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
-            int thisX = rc.getLocation().x;
-            int thisY = rc.getLocation().y;
-            for (RobotInfo robot : nearbyRobots) {
-                int x = robot.location.x;
-                int y = robot.location.y;
-                int diffX = x - thisX; //pos = enemy is N, neg = enemy = S
-                int diffY = y - thisY; //pos = enemy is E, neg = W
-                if (diffX > 0) {
-                    nearby[0] += 1;
-                }
-                if (diffX < 0) {
-                    nearby[2] += 1;
-                }
-                if (diffY > 0) {
-                    nearby[1] += 1;
-                }
-                if (diffY < 0) {
-                    nearby[3] += 1;
+            RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam()); // TODO: Clouds
+            Direction dir = directions[rng.nextInt(8)];
+            double[] vector = new double[]{dir.dx, dir.dx};
+            for (RobotInfo r : robots) {
+                MapLocation loc = r.location;
+                int dx = loc.x - myLocation.x;
+                int dy = loc.y - myLocation.y;
+                double inverse = 1.2 / (dx * dx + dy * dy);
+                vector[0] -= dx * inverse;
+                vector[1] -= dy * inverse;
+            }
+            double max = Double.MIN_VALUE;
+            for (Direction d : directions) {
+                MapLocation target = myLocation.add(d);
+                if (rc.onTheMap(target) && rc.sensePassability(target) && !rc.isLocationOccupied(target)) {
+                    double dot = dotProduct(new double[]{d.dx, d.dy}, vector);
+                    if (dot > max) {
+                        dir = d;
+                        max = dot;
+                    }
                 }
             }
-            boolean N = false;
-            boolean S = false;
-            boolean E = false;
-            boolean W = false;
-            int updown = nearby[0] - nearby[2];
-            int ew = nearby[1] - nearby[3];
-            if (updown > 0) {
-                S = true; //enemies in N
-            }else {
-                N = true;
-            }
-            if (ew > 0) {
-                W = true;
-            } else {
-                E = true;
-            }
-            if (N && E && rc.canMove(Direction.NORTHEAST)) {
-                dir = Direction.NORTHEAST;
-            } else if (N && W && rc.canMove((Direction.NORTHWEST))) {
-                dir = Direction.NORTHWEST;
-            } else if (S && E && rc.canMove((Direction.SOUTHEAST))) {
-                dir = Direction.SOUTHEAST;
-            } else if (S && W && rc.canMove(Direction.SOUTHWEST)) {
-                dir = Direction.SOUTHWEST;
-            } else if (N && rc.canMove(Direction.NORTH)) {
-                dir = Direction.NORTH;
-            } else if (E && rc.canMove(Direction.EAST)) {
-                dir = Direction.EAST;
-            } else if (S && rc.canMove(Direction.SOUTH)) {
-                dir = Direction.SOUTH;
-            } else if (W && rc.canMove(Direction.WEST)) {
-                dir = Direction.WEST;
-            }
-            if (dir != null) {
-                rc.move(dir); //only moves on space
+            if (rc.canMove(dir)) {
+                rc.move(dir);
             }
         }
     }
