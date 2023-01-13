@@ -1,26 +1,21 @@
 package jackPlayer;
 
 import battlecode.common.*;
+import jackPlayer.Pathing.BFS;
+import jackPlayer.Pathing.RobotBFS;
 
 public class LauncherController extends Controller {
     private RobotType type;
     private Team enemyTeam;
     private int visionRadiusSquared;
+    private BFS pathing;
 
     public LauncherController(RobotController rc) {
         super(rc);
+        pathing = new RobotBFS(rc);
         type = rc.getType();
         enemyTeam = rc.getTeam().opponent();
         visionRadiusSquared = rc.getType().visionRadiusSquared;
-    }
-
-    public MapLocation[] enemiesInVision(RobotController rc, int visionRadiusSquared, Team enemyTeam) throws GameActionException {
-        RobotInfo[] enemies = rc.senseNearbyRobots(visionRadiusSquared, enemyTeam);
-        MapLocation[] enemyLocations = new MapLocation[enemies.length];
-        for (int i = 0; i < enemies.length; i++) {
-            enemyLocations[i] = enemies[i].location;
-        }
-        return enemyLocations;
     }
 
     public MapLocation closestEnemy(RobotController rc) throws GameActionException {
@@ -60,7 +55,7 @@ public class LauncherController extends Controller {
         MapLocation enemyLocation = closestEnemy(rc);
         if (enemyLocation != null) {
             attack(rc, enemyLocation);
-            moveTowardsBFS(rc, enemyLocation);
+            pathing.move(enemyLocation);
         } else {
             rc.setIndicatorString("Exploring");
             generalExplore(rc);
