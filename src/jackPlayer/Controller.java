@@ -37,6 +37,8 @@ public abstract class Controller {
         mapHeight = rc.getMapHeight();
     }
 
+    public static abstract void attack(RobotController rc) throws GameActionException;
+
     public void run(RobotController rc) throws GameActionException {
         turnCount++;
         myLocation = rc.getLocation();

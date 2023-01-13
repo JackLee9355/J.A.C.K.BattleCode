@@ -113,4 +113,36 @@ public class CarrierController extends Controller {
     }
 
 
+    public static void attack(RobotController rc) throws GameActionException {
+        if (rc.isActionReady()) {
+            RobotInfo[] enemies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent());
+            int indexAttack = -1;
+            int health = 100;
+            for (int i = 0; i < enemies.length; i++) {
+                int enemyHealth = enemies[i].getHealth();
+                RobotInfo enemy = enemies[i];
+                if(enemy.getType().equals(RobotType.CARRIER) || enemy.getType().equals(RobotType.DESTABILIZER) || enemy.getType().equals(RobotType.LAUNCHER)) {
+                    if(enemyHealth == rc.getType().damage){
+                        indexAttack = i;
+                        break;
+                    } else if (enemyHealth < health) {
+                        indexAttack = i;
+                        health = enemyHealth;
+                    }
+                }
+            }
+            if (indexAttack >= 0) {
+                MapLocation enemyLoc = enemies[indexAttack].getLocation();
+                if (rc.canAttack(enemyLoc)) {
+                    rc.attack(enemyLoc);
+                }
+            } else if (enemies.length > 0) { //there exist enemies in the action range, but they are all at full health
+                MapLocation enemyLoc = enemies[0].getLocation();
+                if (rc.canAttack(enemyLoc)) {
+                    rc.attack(enemyLoc);
+                }
+            }
+        }
+    }
+
 }
