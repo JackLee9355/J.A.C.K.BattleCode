@@ -5,8 +5,8 @@ import battlecode.common.*;
 public abstract class Pathing {
     private Direction alongObstacleDir = null;
     private MapLocation currentTarget = null;
+    private Tracker tracker;
     public RobotController rc;
-    public Tracker tracker;
 
     public Pathing (RobotController rc) {
         this.rc = rc;
@@ -18,7 +18,7 @@ public abstract class Pathing {
     }
 
     // Reset tracker if new target has been specified else continue pathing with current tracker
-    void update(MapLocation target) {
+    private void update(MapLocation target) {
         if (currentTarget == null || !target.equals(currentTarget)) {
             tracker.reset();
         }
@@ -26,7 +26,7 @@ public abstract class Pathing {
         tracker.add(rc.getLocation());
     }
 
-    public void bugMove(MapLocation target) throws GameActionException {
+    private void bugMove(MapLocation target) throws GameActionException {
         // Cool down active, can't move
         if (!rc.isMovementReady()) {
             return;
@@ -63,7 +63,7 @@ public abstract class Pathing {
         }
     }
 
-    public void BFSMove(MapLocation target) throws GameActionException {
+    private void BFSMove(MapLocation target) throws GameActionException {
         if (!rc.isMovementReady()) return;
         if (rc.getLocation().equals(target)) return;
 
