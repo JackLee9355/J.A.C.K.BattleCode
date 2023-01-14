@@ -1,43 +1,35 @@
 package jackPlayer.Pathing;
 
-import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.GameActionException;
 
-public abstract class BFS {
-    private static Direction alongObstacleDir = null;
-    public static final int BYTECODE_REMAINING = 1000;
-    public static final int GREEDY_TURNS = 4; // changable
+public abstract class Pathing {
+    private Direction alongObstacleDir = null;
+    private MapLocation currentTarget = null;
     public RobotController rc;
     public Tracker tracker;
-    public MapLocation currentTarget = null;
-    public int turnsGreedy = 0;
 
-    public BFS (RobotController rc) {
+    public Pathing (RobotController rc) {
         this.rc = rc;
         this.tracker = new Tracker();
     }
 
-    void reset() {
-        turnsGreedy = 0;
-        tracker.reset();
-    }
-
     public void move(MapLocation target) throws GameActionException {
-        moveTowardsBFS(target, false);
+        BFSMove(target);
     }
 
+    // Reset tracker if new target has been specified else continue pathing with current tracker
     void update(MapLocation target) {
-        if (currentTarget == null || target.distanceSquaredTo(currentTarget) > 0) {
-            reset();
-        } else --turnsGreedy;
+        if (currentTarget == null || !target.equals(currentTarget)) {
+            tracker.reset();
+        }
         currentTarget = target;
         tracker.add(rc.getLocation());
     }
 
-    public void naiveMove(RobotController rc, MapLocation target) throws GameActionException {
+    public void bugMove(MapLocation target) throws GameActionException {
         // Cool down active, can't move
         if (!rc.isMovementReady()) {
             return;
@@ -74,30 +66,36 @@ public abstract class BFS {
         }
     }
 
-    public void moveTowardsBFS(MapLocation target, boolean greedy) throws GameActionException {
-        if (target == null) return;
+    public void BFSMove(MapLocation target) throws GameActionException {
         if (!rc.isMovementReady()) return;
-        if (rc.getLocation().distanceSquaredTo(target) == 0) return;
+        if (rc.getLocation().equals(target)) return;
 
         update(target);
 
-        if (!greedy && turnsGreedy <= 0){
-            Direction dir = getBestDirection(target);
-            if (dir != null && !tracker.check(rc.getLocation().add(dir))){
-                naiveMove(rc, target);
-                return;
-            } else activateGreedy();
+        // Target is adjacent to my location & is unoccupied & is passable
+        if (rc.getLocation().distanceSquaredTo(target) <= 2) {
+            if (rc.isLocationOccupied(target) && rc.sensePassability(target)) {
+                Direction dir = rc.getLocation().directionTo(target);
+                if (rc.canMove(dir)) {
+                    rc.move(dir);
+                }
+            }
+            return;
         }
 
-        if (Clock.getBytecodesLeft() >= BYTECODE_REMAINING) {
-            naiveMove(rc, target);
-            --turnsGreedy;
+        // Get the best direction to move in computed by bellman ford
+        Direction dir = getBestDirection(target);
+
+        // Attempt to move if best direction was found, hasn't been seen in the tracker
+        // (assuming our destination hasn't changed), and we can move else we will attempt a
+        // possible not optimal bug move
+        if (dir != null && !tracker.check(rc.getLocation().add(dir)) && rc.canMove(dir)) {
+            rc.move(dir);
+            tracker.add(rc.getLocation());
+        } else {
+            bugMove(target);
         }
     }
 
-    void activateGreedy(){
-        turnsGreedy = GREEDY_TURNS;
-    }
-
-    public abstract Direction getBestDirection(MapLocation target);
+    public abstract Direction getBestDirection(MapLocation target) throws GameActionException;
 }

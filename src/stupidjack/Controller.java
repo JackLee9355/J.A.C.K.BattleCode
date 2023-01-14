@@ -1,9 +1,8 @@
-package jackPlayer;
+package stupidjack;
 
 import jackPlayer.Communications.Communications;
 import jackPlayer.Communications.EntityType;
 import jackPlayer.Communications.Well;
-import jackPlayer.Pathing.Pathing;
 
 import java.util.*;
 
@@ -18,16 +17,15 @@ public abstract strictfp class Controller {
     protected final int mapWidth;
     protected final int mapHeight;
     protected MapLocation myLocation;
-    protected Pathing pathing;
     protected Direction alongObstacleDir = null;
-    protected final Random rng = new Random(6147);
+    protected static final Random rng = new Random(6147);
     private final int[][] map; // [x][y]
-    private final int[][] DIRS = new int[][]{
+    private static final int[][] DIRS = new int[][]{
             {0, 1}, {1, 0}, {1, 1},
             {0, -1}, {-1, 0}, {-1, -1},
             {1, -1}, {-1, 1}
     };
-    protected final Direction[] directions = {
+    protected static final Direction[] directions = {
             Direction.NORTH,
             Direction.NORTHEAST,
             Direction.EAST,
@@ -37,7 +35,6 @@ public abstract strictfp class Controller {
             Direction.WEST,
             Direction.NORTHWEST,
     };
-    protected Map<MapLocation, WellInfo> wellCache = new HashMap<>();
 
     public Controller(RobotController rc) {
         mapWidth = rc.getMapWidth();
@@ -48,10 +45,6 @@ public abstract strictfp class Controller {
     public void run(RobotController rc) throws GameActionException {
         turnCount++;
         myLocation = rc.getLocation();
-        cacheNewWells(rc);
-        if (turnCount > 1 && rc.canWriteSharedArray(0, 0)) { // Worried about weird behavior on master hq
-            writeWellCache(rc);
-        }
     }
 
     protected void manageWell(RobotController rc, WellInfo wellInfo) throws GameActionException {
@@ -80,38 +73,6 @@ public abstract strictfp class Controller {
             locations.add(rc.getLocation().add(dir));
         }
         return locations;
-    }
-
-    protected void readEntireArray(RobotController rc) throws GameActionException {
-        for (int i = 0; i < 64; i++) {
-            sharedArray[i] = rc.readSharedArray(i);
-        }
-    }
-
-    private void writeWellCache(RobotController rc) throws GameActionException {
-        Set<MapLocation> storedWells = new HashSet<>();
-        List<Well> wells = Communications.getWells(rc);
-        if (wells == null)
-            return;
-
-        for (Well well : wells) {
-            storedWells.add(well.getMapLocation());
-        }
-
-        for (MapLocation wellLoc : wellCache.keySet()) {
-            if (!storedWells.contains(wellLoc)) {
-                manageWell(rc, wellCache.get(wellLoc));
-                System.out.println("Managing new well at location: " + wellLoc.x + ", " + wellLoc.y);
-                break; // We can't add more than one anyway
-            }
-        }
-        // wellCache.clear(); Can be added for performance later if we didn't break out of the loop
-    }
-
-    private void cacheNewWells(RobotController rc) throws GameActionException {
-        for (WellInfo wellInfo : rc.senseNearbyWells()) {
-            wellCache.put(wellInfo.getMapLocation(), wellInfo);
-        }
     }
 
     public MapLocation closestLocation(MapLocation[] locations, MapLocation relative, MapLocation target) throws GameActionException {
@@ -376,7 +337,7 @@ public abstract strictfp class Controller {
             front++;
         }
 
-        // Set the start to point to nothing (so there isn't a loop in the path that's followed back)
+        // Set the start to point to nothing (so there isn't a loop in the path thats followed back)
         cameFrom[queue[0][0]][queue[0][1]][0] = -1;
         cameFrom[queue[0][0]][queue[0][1]][1] = -1;
 
@@ -408,7 +369,7 @@ public abstract strictfp class Controller {
         return a[0] * b[0] + a[1] * b[1];
     }
 
-    public static void generalExplore(RobotController rc) throws GameActionException {
+    public void generalExplore(RobotController rc) throws GameActionException {
         if (rc.isMovementReady()) {
             RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam()); // TODO: Clouds
             Direction dir = directions[rng.nextInt(8)];

@@ -1,10 +1,10 @@
-package jackPlayer;
+package stupidjack;
 
 import battlecode.common.*;
 import jackPlayer.Communications.Communications;
 import jackPlayer.Communications.Headquarter;
 import jackPlayer.Communications.Well;
-import jackPlayer.Pathing.RobotPathing;
+import jackPlayer.Controller;
 
 import java.util.*;
 
@@ -18,7 +18,6 @@ public class CarrierController extends Controller {
         super(rc);
         assignWell(rc);
         assignHQ(rc);
-        pathing = new RobotPathing(rc);
     }
 
     private void assignWell(RobotController rc) throws GameActionException {
@@ -30,11 +29,10 @@ public class CarrierController extends Controller {
         // If this is too expensive switch to repeatedly taking the minimum
         Collections.sort(wells, Comparator.comparingInt(o -> curLoc.distanceSquaredTo(o.getMapLocation())));
         for (Well well : wells) {
-            if (well.getWorkerCount() <= 15 /* || well.getPressure() < 5 */ ) {
+            if (well.getWorkerCount() <= 15 || well.getPressure() < 5) {
                 wellLocation = well.getMapLocation();
                 wellType = well.getType();
                 Communications.incrementWellWorkers(rc, well);
-                break;
             }
         }
     }
@@ -66,22 +64,18 @@ public class CarrierController extends Controller {
     }
 
     private void attemptDeposit(RobotController rc) throws GameActionException {
-        rc.setIndicatorString("Depositing");
         if (headquarter.isAdjacentTo(rc.getLocation()) && rc.isActionReady()) {
             int exAmount = rc.getResourceAmount(ResourceType.ELIXIR);
             if (exAmount > 0) {
                 rc.transferResource(headquarter, ResourceType.ELIXIR, exAmount);
-                return;
             }
             int adAmount = rc.getResourceAmount(ResourceType.ADAMANTIUM);
-            if (adAmount > 0 && rc.isActionReady()) {
+            if (adAmount > 0) {
                 rc.transferResource(headquarter, ResourceType.ADAMANTIUM, adAmount);
-                return;
             }
             int mnAmount = rc.getResourceAmount(ResourceType.MANA);
             if (mnAmount > 0) {
                 rc.transferResource(headquarter, ResourceType.MANA, mnAmount);
-                return;
             }
         }
     }
@@ -96,60 +90,23 @@ public class CarrierController extends Controller {
     public void run(RobotController rc) throws GameActionException {
         super.run(rc);
 
-//        if (rc.senseMapInfo(myLocation).hasCloud()) {
-//            pathing = new CarrierPathing(rc);
-//        }
-
         assignHQ(rc);
         if (wellLocation == null) {
             assignWell(rc);
             if (wellLocation == null)
                 return;
         }
-        rc.setIndicatorString("Assigned Well: " + wellLocation.x + ", " + wellLocation.y);
 
         attemptCollect(rc);
         attemptDeposit(rc);
         if (totalHeld(rc) < 40) {
-            pathing.move(wellLocation);
+            moveTowardsBFS(rc, wellLocation);
         } else {
-            pathing.move(headquarter);
+            moveTowardsBFS(rc, headquarter);
         }
         attemptCollect(rc);
         attemptDeposit(rc);
     }
 
-
-    public static void attack(RobotController rc) throws GameActionException {
-        if (rc.isActionReady()) {
-            RobotInfo[] enemies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent());
-            int indexAttack = -1;
-            int health = 100;
-            for (int i = 0; i < enemies.length; i++) {
-                int enemyHealth = enemies[i].getHealth();
-                RobotInfo enemy = enemies[i];
-                if(enemy.getType().equals(RobotType.CARRIER) || enemy.getType().equals(RobotType.DESTABILIZER) || enemy.getType().equals(RobotType.LAUNCHER)) {
-                    if(enemyHealth == rc.getType().damage){
-                        indexAttack = i;
-                        break;
-                    } else if (enemyHealth < health) {
-                        indexAttack = i;
-                        health = enemyHealth;
-                    }
-                }
-            }
-            if (indexAttack >= 0) {
-                MapLocation enemyLoc = enemies[indexAttack].getLocation();
-                if (rc.canAttack(enemyLoc)) {
-                    rc.attack(enemyLoc);
-                }
-            } else if (enemies.length > 0) { //there exist enemies in the action range, but they are all at full health
-                MapLocation enemyLoc = enemies[0].getLocation();
-                if (rc.canAttack(enemyLoc)) {
-                    rc.attack(enemyLoc);
-                }
-            }
-        }
-    }
 
 }
