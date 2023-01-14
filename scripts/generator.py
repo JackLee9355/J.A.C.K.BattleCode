@@ -20,7 +20,7 @@ import sys
 
 # NORMAL VISION
 # NOTE: We might want to reduce some of these visions if we run into bytecost limits
-VISION_EUCLIDEAN_DISTANCE = {"Carrier": 20, "Launcher": 20, "Destabilizer": 20, "Booster": 20, "Amplifier": 34}
+VISION_EUCLIDEAN_DISTANCE = {"Carrier": 16, "Launcher": 20, "Destabilizer": 20, "Booster": 20, "Amplifier": 34}
 SMALLER_VISION_EUCLIDEAN_DISTANCE = {"Carrier": 10, "Launcher": 10, "Destabilizer": 10, "Booster": 10, "Amplifier": 24}
 
 DIRECTIONS = {
