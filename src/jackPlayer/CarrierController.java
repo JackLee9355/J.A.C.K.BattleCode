@@ -96,10 +96,6 @@ public class CarrierController extends Controller {
     public void run(RobotController rc) throws GameActionException {
         super.run(rc);
 
-//        if (rc.senseMapInfo(myLocation).hasCloud()) {
-//            pathing = new CarrierPathing(rc);
-//        }
-
         assignHQ(rc);
         if (wellLocation == null) {
             assignWell(rc);
