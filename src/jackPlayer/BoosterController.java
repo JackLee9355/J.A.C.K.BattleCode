@@ -6,6 +6,7 @@ import battlecode.common.RobotInfo;
 
 public class BoosterController extends Controller {
 public static int area = 0;
+public static int numBoosts = 0;
     public BoosterController(RobotController rc) {
         super(rc);
 
@@ -19,6 +20,10 @@ public static int area = 0;
     }
 
     public void boost(RobotController rc) throws GameActionException {
+        if(numBoosts == 3){
+            Controller.generalExplore(rc);
+            numBoosts = 0;
+        }
         if(rc.canBoost()){
             if(area == 0){
                 area = rc.getMapWidth() * rc.getMapHeight();
@@ -36,12 +41,14 @@ public static int area = 0;
                 } else { //less than 1/3 of the map is covered in our robots
                     if(nearbyRobots.length >= (numRobots/100) && nearbyRobots.length > 0){
                         rc.boost();
+                        numBoosts += 1;
                     }
                 }
             } else { //so map is more like 40x40 to 60x60 - robots are going to be more spread out
                 if(numRobots >= (area/4)){ //so at least 1/4 of the map is covered in our robots
                     if(nearbyRobots.length >= (numRobots/3) || nearbyRobots.length >= 10){
                         rc.boost();
+                        numBoosts += 1;
                     } else { //otherwise it should move and try and be surrounded by other robots
                         Controller.generalExplore(rc);
                     }
