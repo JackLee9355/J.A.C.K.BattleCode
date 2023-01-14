@@ -17,29 +17,9 @@ public class RobotPathing extends Pathing {
      *  Direction: dir(0 or 1)(x)(0 or 1)y
      */
 
-    private MapLocation loc1412; // location representing relative coordinate (-4, -2)
-    private int dist1412;        // shortest distance to location from current location
-    private Direction dir1412;   // best direction to take now to optimally get to location
-
-    private MapLocation loc1411; // location representing relative coordinate (-4, -1)
-    private int dist1411;        // shortest distance to location from current location
-    private Direction dir1411;   // best direction to take now to optimally get to location
-
     private MapLocation loc1400; // location representing relative coordinate (-4, 0)
     private int dist1400;        // shortest distance to location from current location
     private Direction dir1400;   // best direction to take now to optimally get to location
-
-    private MapLocation loc1401; // location representing relative coordinate (-4, 1)
-    private int dist1401;        // shortest distance to location from current location
-    private Direction dir1401;   // best direction to take now to optimally get to location
-
-    private MapLocation loc1402; // location representing relative coordinate (-4, 2)
-    private int dist1402;        // shortest distance to location from current location
-    private Direction dir1402;   // best direction to take now to optimally get to location
-
-    private MapLocation loc1313; // location representing relative coordinate (-3, -3)
-    private int dist1313;        // shortest distance to location from current location
-    private Direction dir1313;   // best direction to take now to optimally get to location
 
     private MapLocation loc1312; // location representing relative coordinate (-3, -2)
     private int dist1312;        // shortest distance to location from current location
@@ -60,14 +40,6 @@ public class RobotPathing extends Pathing {
     private MapLocation loc1302; // location representing relative coordinate (-3, 2)
     private int dist1302;        // shortest distance to location from current location
     private Direction dir1302;   // best direction to take now to optimally get to location
-
-    private MapLocation loc1303; // location representing relative coordinate (-3, 3)
-    private int dist1303;        // shortest distance to location from current location
-    private Direction dir1303;   // best direction to take now to optimally get to location
-
-    private MapLocation loc1214; // location representing relative coordinate (-2, -4)
-    private int dist1214;        // shortest distance to location from current location
-    private Direction dir1214;   // best direction to take now to optimally get to location
 
     private MapLocation loc1213; // location representing relative coordinate (-2, -3)
     private int dist1213;        // shortest distance to location from current location
@@ -97,14 +69,6 @@ public class RobotPathing extends Pathing {
     private int dist1203;        // shortest distance to location from current location
     private Direction dir1203;   // best direction to take now to optimally get to location
 
-    private MapLocation loc1204; // location representing relative coordinate (-2, 4)
-    private int dist1204;        // shortest distance to location from current location
-    private Direction dir1204;   // best direction to take now to optimally get to location
-
-    private MapLocation loc1114; // location representing relative coordinate (-1, -4)
-    private int dist1114;        // shortest distance to location from current location
-    private Direction dir1114;   // best direction to take now to optimally get to location
-
     private MapLocation loc1113; // location representing relative coordinate (-1, -3)
     private int dist1113;        // shortest distance to location from current location
     private Direction dir1113;   // best direction to take now to optimally get to location
@@ -132,10 +96,6 @@ public class RobotPathing extends Pathing {
     private MapLocation loc1103; // location representing relative coordinate (-1, 3)
     private int dist1103;        // shortest distance to location from current location
     private Direction dir1103;   // best direction to take now to optimally get to location
-
-    private MapLocation loc1104; // location representing relative coordinate (-1, 4)
-    private int dist1104;        // shortest distance to location from current location
-    private Direction dir1104;   // best direction to take now to optimally get to location
 
     private MapLocation loc0014; // location representing relative coordinate (0, -4)
     private int dist0014;        // shortest distance to location from current location
@@ -173,10 +133,6 @@ public class RobotPathing extends Pathing {
     private int dist0004;        // shortest distance to location from current location
     private Direction dir0004;   // best direction to take now to optimally get to location
 
-    private MapLocation loc0114; // location representing relative coordinate (1, -4)
-    private int dist0114;        // shortest distance to location from current location
-    private Direction dir0114;   // best direction to take now to optimally get to location
-
     private MapLocation loc0113; // location representing relative coordinate (1, -3)
     private int dist0113;        // shortest distance to location from current location
     private Direction dir0113;   // best direction to take now to optimally get to location
@@ -204,14 +160,6 @@ public class RobotPathing extends Pathing {
     private MapLocation loc0103; // location representing relative coordinate (1, 3)
     private int dist0103;        // shortest distance to location from current location
     private Direction dir0103;   // best direction to take now to optimally get to location
-
-    private MapLocation loc0104; // location representing relative coordinate (1, 4)
-    private int dist0104;        // shortest distance to location from current location
-    private Direction dir0104;   // best direction to take now to optimally get to location
-
-    private MapLocation loc0214; // location representing relative coordinate (2, -4)
-    private int dist0214;        // shortest distance to location from current location
-    private Direction dir0214;   // best direction to take now to optimally get to location
 
     private MapLocation loc0213; // location representing relative coordinate (2, -3)
     private int dist0213;        // shortest distance to location from current location
@@ -241,14 +189,6 @@ public class RobotPathing extends Pathing {
     private int dist0203;        // shortest distance to location from current location
     private Direction dir0203;   // best direction to take now to optimally get to location
 
-    private MapLocation loc0204; // location representing relative coordinate (2, 4)
-    private int dist0204;        // shortest distance to location from current location
-    private Direction dir0204;   // best direction to take now to optimally get to location
-
-    private MapLocation loc0313; // location representing relative coordinate (3, -3)
-    private int dist0313;        // shortest distance to location from current location
-    private Direction dir0313;   // best direction to take now to optimally get to location
-
     private MapLocation loc0312; // location representing relative coordinate (3, -2)
     private int dist0312;        // shortest distance to location from current location
     private Direction dir0312;   // best direction to take now to optimally get to location
@@ -269,29 +209,9 @@ public class RobotPathing extends Pathing {
     private int dist0302;        // shortest distance to location from current location
     private Direction dir0302;   // best direction to take now to optimally get to location
 
-    private MapLocation loc0303; // location representing relative coordinate (3, 3)
-    private int dist0303;        // shortest distance to location from current location
-    private Direction dir0303;   // best direction to take now to optimally get to location
-
-    private MapLocation loc0412; // location representing relative coordinate (4, -2)
-    private int dist0412;        // shortest distance to location from current location
-    private Direction dir0412;   // best direction to take now to optimally get to location
-
-    private MapLocation loc0411; // location representing relative coordinate (4, -1)
-    private int dist0411;        // shortest distance to location from current location
-    private Direction dir0411;   // best direction to take now to optimally get to location
-
     private MapLocation loc0400; // location representing relative coordinate (4, 0)
     private int dist0400;        // shortest distance to location from current location
     private Direction dir0400;   // best direction to take now to optimally get to location
-
-    private MapLocation loc0401; // location representing relative coordinate (4, 1)
-    private int dist0401;        // shortest distance to location from current location
-    private Direction dir0401;   // best direction to take now to optimally get to location
-
-    private MapLocation loc0402; // location representing relative coordinate (4, 2)
-    private int dist0402;        // shortest distance to location from current location
-    private Direction dir0402;   // best direction to take now to optimally get to location
 
     public Direction getBestDirection(MapLocation target) throws GameActionException {
         /*
@@ -494,86 +414,6 @@ public class RobotPathing extends Pathing {
         loc0400 = loc0300.add(Direction.EAST); // (4, 0) from (3, 0)
         dist0400 = 99999;
         dir0400 = null;
-
-        loc1411 = loc1300.add(Direction.SOUTHWEST); // (-4, -1) from (-3, 0)
-        dist1411 = 99999;
-        dir1411 = null;
-
-        loc1401 = loc1300.add(Direction.NORTHWEST); // (-4, 1) from (-3, 0)
-        dist1401 = 99999;
-        dir1401 = null;
-
-        loc1114 = loc0013.add(Direction.SOUTHWEST); // (-1, -4) from (0, -3)
-        dist1114 = 99999;
-        dir1114 = null;
-
-        loc1104 = loc0003.add(Direction.NORTHWEST); // (-1, 4) from (0, 3)
-        dist1104 = 99999;
-        dir1104 = null;
-
-        loc0114 = loc0013.add(Direction.SOUTHEAST); // (1, -4) from (0, -3)
-        dist0114 = 99999;
-        dir0114 = null;
-
-        loc0104 = loc0003.add(Direction.NORTHEAST); // (1, 4) from (0, 3)
-        dist0104 = 99999;
-        dir0104 = null;
-
-        loc0411 = loc0300.add(Direction.SOUTHEAST); // (4, -1) from (3, 0)
-        dist0411 = 99999;
-        dir0411 = null;
-
-        loc0401 = loc0300.add(Direction.NORTHEAST); // (4, 1) from (3, 0)
-        dist0401 = 99999;
-        dir0401 = null;
-
-        loc1313 = loc1212.add(Direction.SOUTHWEST); // (-3, -3) from (-2, -2)
-        dist1313 = 99999;
-        dir1313 = null;
-
-        loc1303 = loc1202.add(Direction.NORTHWEST); // (-3, 3) from (-2, 2)
-        dist1303 = 99999;
-        dir1303 = null;
-
-        loc0313 = loc0212.add(Direction.SOUTHEAST); // (3, -3) from (2, -2)
-        dist0313 = 99999;
-        dir0313 = null;
-
-        loc0303 = loc0202.add(Direction.NORTHEAST); // (3, 3) from (2, 2)
-        dist0303 = 99999;
-        dir0303 = null;
-
-        loc1412 = loc1311.add(Direction.SOUTHWEST); // (-4, -2) from (-3, -1)
-        dist1412 = 99999;
-        dir1412 = null;
-
-        loc1402 = loc1301.add(Direction.NORTHWEST); // (-4, 2) from (-3, 1)
-        dist1402 = 99999;
-        dir1402 = null;
-
-        loc1214 = loc1113.add(Direction.SOUTHWEST); // (-2, -4) from (-1, -3)
-        dist1214 = 99999;
-        dir1214 = null;
-
-        loc1204 = loc1103.add(Direction.NORTHWEST); // (-2, 4) from (-1, 3)
-        dist1204 = 99999;
-        dir1204 = null;
-
-        loc0214 = loc0113.add(Direction.SOUTHEAST); // (2, -4) from (1, -3)
-        dist0214 = 99999;
-        dir0214 = null;
-
-        loc0204 = loc0103.add(Direction.NORTHEAST); // (2, 4) from (1, 3)
-        dist0204 = 99999;
-        dir0204 = null;
-
-        loc0412 = loc0311.add(Direction.SOUTHEAST); // (4, -2) from (3, -1)
-        dist0412 = 99999;
-        dir0412 = null;
-
-        loc0402 = loc0301.add(Direction.NORTHEAST); // (4, 2) from (3, 1)
-        dist0402 = 99999;
-        dir0402 = null;
 
         /*
          * PART 2: Single iteration of Bellman-Ford
@@ -1520,446 +1360,6 @@ public class RobotPathing extends Pathing {
             dist0400 += 1 + (rc.senseMapInfo(loc0400).hasCloud() ? 10 : 0);
         }
 
-        if (rc.canSenseLocation(loc1411)) { // check (-4, -1)
-            if (dist1411 > dist1300) { // from (-3, 0)
-                dist1411 = dist1300;
-                dir1411 = dir1300;
-            }
-
-            if (dist1411 > dist1311) { // from (-3, -1)
-                dist1411 = dist1311;
-                dir1411 = dir1311;
-            }
-
-            if (dist1411 > dist1312) { // from (-3, -2)
-                dist1411 = dist1312;
-                dir1411 = dir1312;
-            }
-
-            if (dist1411 > dist1400) { // from (-4, 0)
-                dist1411 = dist1400;
-                dir1411 = dir1400;
-            }
-            dist1411 += 1 + (rc.senseMapInfo(loc1411).hasCloud() ? 10 : 0);
-        }
-
-        if (rc.canSenseLocation(loc1401)) { // check (-4, 1)
-            if (dist1401 > dist1300) { // from (-3, 0)
-                dist1401 = dist1300;
-                dir1401 = dir1300;
-            }
-
-            if (dist1401 > dist1301) { // from (-3, 1)
-                dist1401 = dist1301;
-                dir1401 = dir1301;
-            }
-
-            if (dist1401 > dist1302) { // from (-3, 2)
-                dist1401 = dist1302;
-                dir1401 = dir1302;
-            }
-
-            if (dist1401 > dist1400) { // from (-4, 0)
-                dist1401 = dist1400;
-                dir1401 = dir1400;
-            }
-            dist1401 += 1 + (rc.senseMapInfo(loc1401).hasCloud() ? 10 : 0);
-        }
-
-        if (rc.canSenseLocation(loc1114)) { // check (-1, -4)
-            if (dist1114 > dist0013) { // from (0, -3)
-                dist1114 = dist0013;
-                dir1114 = dir0013;
-            }
-
-            if (dist1114 > dist1113) { // from (-1, -3)
-                dist1114 = dist1113;
-                dir1114 = dir1113;
-            }
-
-            if (dist1114 > dist1213) { // from (-2, -3)
-                dist1114 = dist1213;
-                dir1114 = dir1213;
-            }
-
-            if (dist1114 > dist0014) { // from (0, -4)
-                dist1114 = dist0014;
-                dir1114 = dir0014;
-            }
-            dist1114 += 1 + (rc.senseMapInfo(loc1114).hasCloud() ? 10 : 0);
-        }
-
-        if (rc.canSenseLocation(loc1104)) { // check (-1, 4)
-            if (dist1104 > dist0003) { // from (0, 3)
-                dist1104 = dist0003;
-                dir1104 = dir0003;
-            }
-
-            if (dist1104 > dist1103) { // from (-1, 3)
-                dist1104 = dist1103;
-                dir1104 = dir1103;
-            }
-
-            if (dist1104 > dist1203) { // from (-2, 3)
-                dist1104 = dist1203;
-                dir1104 = dir1203;
-            }
-
-            if (dist1104 > dist0004) { // from (0, 4)
-                dist1104 = dist0004;
-                dir1104 = dir0004;
-            }
-            dist1104 += 1 + (rc.senseMapInfo(loc1104).hasCloud() ? 10 : 0);
-        }
-
-        if (rc.canSenseLocation(loc0114)) { // check (1, -4)
-            if (dist0114 > dist0013) { // from (0, -3)
-                dist0114 = dist0013;
-                dir0114 = dir0013;
-            }
-
-            if (dist0114 > dist0113) { // from (1, -3)
-                dist0114 = dist0113;
-                dir0114 = dir0113;
-            }
-
-            if (dist0114 > dist0213) { // from (2, -3)
-                dist0114 = dist0213;
-                dir0114 = dir0213;
-            }
-
-            if (dist0114 > dist0014) { // from (0, -4)
-                dist0114 = dist0014;
-                dir0114 = dir0014;
-            }
-            dist0114 += 1 + (rc.senseMapInfo(loc0114).hasCloud() ? 10 : 0);
-        }
-
-        if (rc.canSenseLocation(loc0104)) { // check (1, 4)
-            if (dist0104 > dist0003) { // from (0, 3)
-                dist0104 = dist0003;
-                dir0104 = dir0003;
-            }
-
-            if (dist0104 > dist0103) { // from (1, 3)
-                dist0104 = dist0103;
-                dir0104 = dir0103;
-            }
-
-            if (dist0104 > dist0203) { // from (2, 3)
-                dist0104 = dist0203;
-                dir0104 = dir0203;
-            }
-
-            if (dist0104 > dist0004) { // from (0, 4)
-                dist0104 = dist0004;
-                dir0104 = dir0004;
-            }
-            dist0104 += 1 + (rc.senseMapInfo(loc0104).hasCloud() ? 10 : 0);
-        }
-
-        if (rc.canSenseLocation(loc0411)) { // check (4, -1)
-            if (dist0411 > dist0300) { // from (3, 0)
-                dist0411 = dist0300;
-                dir0411 = dir0300;
-            }
-
-            if (dist0411 > dist0311) { // from (3, -1)
-                dist0411 = dist0311;
-                dir0411 = dir0311;
-            }
-
-            if (dist0411 > dist0312) { // from (3, -2)
-                dist0411 = dist0312;
-                dir0411 = dir0312;
-            }
-
-            if (dist0411 > dist0400) { // from (4, 0)
-                dist0411 = dist0400;
-                dir0411 = dir0400;
-            }
-            dist0411 += 1 + (rc.senseMapInfo(loc0411).hasCloud() ? 10 : 0);
-        }
-
-        if (rc.canSenseLocation(loc0401)) { // check (4, 1)
-            if (dist0401 > dist0300) { // from (3, 0)
-                dist0401 = dist0300;
-                dir0401 = dir0300;
-            }
-
-            if (dist0401 > dist0301) { // from (3, 1)
-                dist0401 = dist0301;
-                dir0401 = dir0301;
-            }
-
-            if (dist0401 > dist0302) { // from (3, 2)
-                dist0401 = dist0302;
-                dir0401 = dir0302;
-            }
-
-            if (dist0401 > dist0400) { // from (4, 0)
-                dist0401 = dist0400;
-                dir0401 = dir0400;
-            }
-            dist0401 += 1 + (rc.senseMapInfo(loc0401).hasCloud() ? 10 : 0);
-        }
-
-        if (rc.canSenseLocation(loc1313)) { // check (-3, -3)
-            if (dist1313 > dist1212) { // from (-2, -2)
-                dist1313 = dist1212;
-                dir1313 = dir1212;
-            }
-
-            if (dist1313 > dist1312) { // from (-3, -2)
-                dist1313 = dist1312;
-                dir1313 = dir1312;
-            }
-
-            if (dist1313 > dist1213) { // from (-2, -3)
-                dist1313 = dist1213;
-                dir1313 = dir1213;
-            }
-            dist1313 += 1 + (rc.senseMapInfo(loc1313).hasCloud() ? 10 : 0);
-        }
-
-        if (rc.canSenseLocation(loc1303)) { // check (-3, 3)
-            if (dist1303 > dist1202) { // from (-2, 2)
-                dist1303 = dist1202;
-                dir1303 = dir1202;
-            }
-
-            if (dist1303 > dist1302) { // from (-3, 2)
-                dist1303 = dist1302;
-                dir1303 = dir1302;
-            }
-
-            if (dist1303 > dist1203) { // from (-2, 3)
-                dist1303 = dist1203;
-                dir1303 = dir1203;
-            }
-            dist1303 += 1 + (rc.senseMapInfo(loc1303).hasCloud() ? 10 : 0);
-        }
-
-        if (rc.canSenseLocation(loc0313)) { // check (3, -3)
-            if (dist0313 > dist0212) { // from (2, -2)
-                dist0313 = dist0212;
-                dir0313 = dir0212;
-            }
-
-            if (dist0313 > dist0213) { // from (2, -3)
-                dist0313 = dist0213;
-                dir0313 = dir0213;
-            }
-
-            if (dist0313 > dist0312) { // from (3, -2)
-                dist0313 = dist0312;
-                dir0313 = dir0312;
-            }
-            dist0313 += 1 + (rc.senseMapInfo(loc0313).hasCloud() ? 10 : 0);
-        }
-
-        if (rc.canSenseLocation(loc0303)) { // check (3, 3)
-            if (dist0303 > dist0202) { // from (2, 2)
-                dist0303 = dist0202;
-                dir0303 = dir0202;
-            }
-
-            if (dist0303 > dist0203) { // from (2, 3)
-                dist0303 = dist0203;
-                dir0303 = dir0203;
-            }
-
-            if (dist0303 > dist0302) { // from (3, 2)
-                dist0303 = dist0302;
-                dir0303 = dir0302;
-            }
-            dist0303 += 1 + (rc.senseMapInfo(loc0303).hasCloud() ? 10 : 0);
-        }
-
-        if (rc.canSenseLocation(loc1412)) { // check (-4, -2)
-            if (dist1412 > dist1311) { // from (-3, -1)
-                dist1412 = dist1311;
-                dir1412 = dir1311;
-            }
-
-            if (dist1412 > dist1312) { // from (-3, -2)
-                dist1412 = dist1312;
-                dir1412 = dir1312;
-            }
-
-            if (dist1412 > dist1411) { // from (-4, -1)
-                dist1412 = dist1411;
-                dir1412 = dir1411;
-            }
-
-            if (dist1412 > dist1313) { // from (-3, -3)
-                dist1412 = dist1313;
-                dir1412 = dir1313;
-            }
-            dist1412 += 1 + (rc.senseMapInfo(loc1412).hasCloud() ? 10 : 0);
-        }
-
-        if (rc.canSenseLocation(loc1402)) { // check (-4, 2)
-            if (dist1402 > dist1301) { // from (-3, 1)
-                dist1402 = dist1301;
-                dir1402 = dir1301;
-            }
-
-            if (dist1402 > dist1302) { // from (-3, 2)
-                dist1402 = dist1302;
-                dir1402 = dir1302;
-            }
-
-            if (dist1402 > dist1401) { // from (-4, 1)
-                dist1402 = dist1401;
-                dir1402 = dir1401;
-            }
-
-            if (dist1402 > dist1303) { // from (-3, 3)
-                dist1402 = dist1303;
-                dir1402 = dir1303;
-            }
-            dist1402 += 1 + (rc.senseMapInfo(loc1402).hasCloud() ? 10 : 0);
-        }
-
-        if (rc.canSenseLocation(loc1214)) { // check (-2, -4)
-            if (dist1214 > dist1113) { // from (-1, -3)
-                dist1214 = dist1113;
-                dir1214 = dir1113;
-            }
-
-            if (dist1214 > dist1213) { // from (-2, -3)
-                dist1214 = dist1213;
-                dir1214 = dir1213;
-            }
-
-            if (dist1214 > dist1114) { // from (-1, -4)
-                dist1214 = dist1114;
-                dir1214 = dir1114;
-            }
-
-            if (dist1214 > dist1313) { // from (-3, -3)
-                dist1214 = dist1313;
-                dir1214 = dir1313;
-            }
-            dist1214 += 1 + (rc.senseMapInfo(loc1214).hasCloud() ? 10 : 0);
-        }
-
-        if (rc.canSenseLocation(loc1204)) { // check (-2, 4)
-            if (dist1204 > dist1103) { // from (-1, 3)
-                dist1204 = dist1103;
-                dir1204 = dir1103;
-            }
-
-            if (dist1204 > dist1203) { // from (-2, 3)
-                dist1204 = dist1203;
-                dir1204 = dir1203;
-            }
-
-            if (dist1204 > dist1104) { // from (-1, 4)
-                dist1204 = dist1104;
-                dir1204 = dir1104;
-            }
-
-            if (dist1204 > dist1303) { // from (-3, 3)
-                dist1204 = dist1303;
-                dir1204 = dir1303;
-            }
-            dist1204 += 1 + (rc.senseMapInfo(loc1204).hasCloud() ? 10 : 0);
-        }
-
-        if (rc.canSenseLocation(loc0214)) { // check (2, -4)
-            if (dist0214 > dist0113) { // from (1, -3)
-                dist0214 = dist0113;
-                dir0214 = dir0113;
-            }
-
-            if (dist0214 > dist0213) { // from (2, -3)
-                dist0214 = dist0213;
-                dir0214 = dir0213;
-            }
-
-            if (dist0214 > dist0114) { // from (1, -4)
-                dist0214 = dist0114;
-                dir0214 = dir0114;
-            }
-
-            if (dist0214 > dist0313) { // from (3, -3)
-                dist0214 = dist0313;
-                dir0214 = dir0313;
-            }
-            dist0214 += 1 + (rc.senseMapInfo(loc0214).hasCloud() ? 10 : 0);
-        }
-
-        if (rc.canSenseLocation(loc0204)) { // check (2, 4)
-            if (dist0204 > dist0103) { // from (1, 3)
-                dist0204 = dist0103;
-                dir0204 = dir0103;
-            }
-
-            if (dist0204 > dist0203) { // from (2, 3)
-                dist0204 = dist0203;
-                dir0204 = dir0203;
-            }
-
-            if (dist0204 > dist0104) { // from (1, 4)
-                dist0204 = dist0104;
-                dir0204 = dir0104;
-            }
-
-            if (dist0204 > dist0303) { // from (3, 3)
-                dist0204 = dist0303;
-                dir0204 = dir0303;
-            }
-            dist0204 += 1 + (rc.senseMapInfo(loc0204).hasCloud() ? 10 : 0);
-        }
-
-        if (rc.canSenseLocation(loc0412)) { // check (4, -2)
-            if (dist0412 > dist0311) { // from (3, -1)
-                dist0412 = dist0311;
-                dir0412 = dir0311;
-            }
-
-            if (dist0412 > dist0312) { // from (3, -2)
-                dist0412 = dist0312;
-                dir0412 = dir0312;
-            }
-
-            if (dist0412 > dist0411) { // from (4, -1)
-                dist0412 = dist0411;
-                dir0412 = dir0411;
-            }
-
-            if (dist0412 > dist0313) { // from (3, -3)
-                dist0412 = dist0313;
-                dir0412 = dir0313;
-            }
-            dist0412 += 1 + (rc.senseMapInfo(loc0412).hasCloud() ? 10 : 0);
-        }
-
-        if (rc.canSenseLocation(loc0402)) { // check (4, 2)
-            if (dist0402 > dist0301) { // from (3, 1)
-                dist0402 = dist0301;
-                dir0402 = dir0301;
-            }
-
-            if (dist0402 > dist0302) { // from (3, 2)
-                dist0402 = dist0302;
-                dir0402 = dir0302;
-            }
-
-            if (dist0402 > dist0401) { // from (4, 1)
-                dist0402 = dist0401;
-                dir0402 = dir0401;
-            }
-
-            if (dist0402 > dist0303) { // from (3, 3)
-                dist0402 = dist0303;
-                dir0402 = dir0303;
-            }
-            dist0402 += 1 + (rc.senseMapInfo(loc0402).hasCloud() ? 10 : 0);
-        }
-
         /*
          * PART 3: Massive Switch Statement
          * We check if the target location is in the vision of the robot that
@@ -1971,27 +1371,12 @@ public class RobotPathing extends Pathing {
         switch (target_dx) {
             case -4:
                 switch (target_dy) {
-                    case -2:
-                        return dir1412; // destination is at relative location (-4, -2)
-
-                    case -1:
-                        return dir1411; // destination is at relative location (-4, -1)
-
                     case 0:
                         return dir1400; // destination is at relative location (-4, 0)
-
-                    case 1:
-                        return dir1401; // destination is at relative location (-4, 1)
-
-                    case 2:
-                        return dir1402; // destination is at relative location (-4, 2)
                 }
                 break;
             case -3:
                 switch (target_dy) {
-                    case -3:
-                        return dir1313; // destination is at relative location (-3, -3)
-
                     case -2:
                         return dir1312; // destination is at relative location (-3, -2)
 
@@ -2006,16 +1391,10 @@ public class RobotPathing extends Pathing {
 
                     case 2:
                         return dir1302; // destination is at relative location (-3, 2)
-
-                    case 3:
-                        return dir1303; // destination is at relative location (-3, 3)
                 }
                 break;
             case -2:
                 switch (target_dy) {
-                    case -4:
-                        return dir1214; // destination is at relative location (-2, -4)
-
                     case -3:
                         return dir1213; // destination is at relative location (-2, -3)
 
@@ -2036,16 +1415,10 @@ public class RobotPathing extends Pathing {
 
                     case 3:
                         return dir1203; // destination is at relative location (-2, 3)
-
-                    case 4:
-                        return dir1204; // destination is at relative location (-2, 4)
                 }
                 break;
             case -1:
                 switch (target_dy) {
-                    case -4:
-                        return dir1114; // destination is at relative location (-1, -4)
-
                     case -3:
                         return dir1113; // destination is at relative location (-1, -3)
 
@@ -2066,9 +1439,6 @@ public class RobotPathing extends Pathing {
 
                     case 3:
                         return dir1103; // destination is at relative location (-1, 3)
-
-                    case 4:
-                        return dir1104; // destination is at relative location (-1, 4)
                 }
                 break;
             case 0:
@@ -2103,9 +1473,6 @@ public class RobotPathing extends Pathing {
                 break;
             case 1:
                 switch (target_dy) {
-                    case -4:
-                        return dir0114; // destination is at relative location (1, -4)
-
                     case -3:
                         return dir0113; // destination is at relative location (1, -3)
 
@@ -2126,16 +1493,10 @@ public class RobotPathing extends Pathing {
 
                     case 3:
                         return dir0103; // destination is at relative location (1, 3)
-
-                    case 4:
-                        return dir0104; // destination is at relative location (1, 4)
                 }
                 break;
             case 2:
                 switch (target_dy) {
-                    case -4:
-                        return dir0214; // destination is at relative location (2, -4)
-
                     case -3:
                         return dir0213; // destination is at relative location (2, -3)
 
@@ -2156,16 +1517,10 @@ public class RobotPathing extends Pathing {
 
                     case 3:
                         return dir0203; // destination is at relative location (2, 3)
-
-                    case 4:
-                        return dir0204; // destination is at relative location (2, 4)
                 }
                 break;
             case 3:
                 switch (target_dy) {
-                    case -3:
-                        return dir0313; // destination is at relative location (3, -3)
-
                     case -2:
                         return dir0312; // destination is at relative location (3, -2)
 
@@ -2180,27 +1535,12 @@ public class RobotPathing extends Pathing {
 
                     case 2:
                         return dir0302; // destination is at relative location (3, 2)
-
-                    case 3:
-                        return dir0303; // destination is at relative location (3, 3)
                 }
                 break;
             case 4:
                 switch (target_dy) {
-                    case -2:
-                        return dir0412; // destination is at relative location (4, -2)
-
-                    case -1:
-                        return dir0411; // destination is at relative location (4, -1)
-
                     case 0:
                         return dir0400; // destination is at relative location (4, 0)
-
-                    case 1:
-                        return dir0401; // destination is at relative location (4, 1)
-
-                    case 2:
-                        return dir0402; // destination is at relative location (4, 2)
                 }
                 break;
         }
@@ -2216,40 +1556,10 @@ public class RobotPathing extends Pathing {
         double bestScore = 0;
         double currDist = Math.sqrt(loc0000.distanceSquaredTo(target));
 
-        double score1412 = (currDist - Math.sqrt(loc1412.distanceSquaredTo(target))) / dist1412; // (-4, -2)
-        if (score1412 > bestScore) {
-            bestScore = score1412;
-            ans = dir1412;
-        }
-
-        double score1411 = (currDist - Math.sqrt(loc1411.distanceSquaredTo(target))) / dist1411; // (-4, -1)
-        if (score1411 > bestScore) {
-            bestScore = score1411;
-            ans = dir1411;
-        }
-
         double score1400 = (currDist - Math.sqrt(loc1400.distanceSquaredTo(target))) / dist1400; // (-4, 0)
         if (score1400 > bestScore) {
             bestScore = score1400;
             ans = dir1400;
-        }
-
-        double score1401 = (currDist - Math.sqrt(loc1401.distanceSquaredTo(target))) / dist1401; // (-4, 1)
-        if (score1401 > bestScore) {
-            bestScore = score1401;
-            ans = dir1401;
-        }
-
-        double score1402 = (currDist - Math.sqrt(loc1402.distanceSquaredTo(target))) / dist1402; // (-4, 2)
-        if (score1402 > bestScore) {
-            bestScore = score1402;
-            ans = dir1402;
-        }
-
-        double score1313 = (currDist - Math.sqrt(loc1313.distanceSquaredTo(target))) / dist1313; // (-3, -3)
-        if (score1313 > bestScore) {
-            bestScore = score1313;
-            ans = dir1313;
         }
 
         double score1312 = (currDist - Math.sqrt(loc1312.distanceSquaredTo(target))) / dist1312; // (-3, -2)
@@ -2264,18 +1574,6 @@ public class RobotPathing extends Pathing {
             ans = dir1302;
         }
 
-        double score1303 = (currDist - Math.sqrt(loc1303.distanceSquaredTo(target))) / dist1303; // (-3, 3)
-        if (score1303 > bestScore) {
-            bestScore = score1303;
-            ans = dir1303;
-        }
-
-        double score1214 = (currDist - Math.sqrt(loc1214.distanceSquaredTo(target))) / dist1214; // (-2, -4)
-        if (score1214 > bestScore) {
-            bestScore = score1214;
-            ans = dir1214;
-        }
-
         double score1213 = (currDist - Math.sqrt(loc1213.distanceSquaredTo(target))) / dist1213; // (-2, -3)
         if (score1213 > bestScore) {
             bestScore = score1213;
@@ -2286,24 +1584,6 @@ public class RobotPathing extends Pathing {
         if (score1203 > bestScore) {
             bestScore = score1203;
             ans = dir1203;
-        }
-
-        double score1204 = (currDist - Math.sqrt(loc1204.distanceSquaredTo(target))) / dist1204; // (-2, 4)
-        if (score1204 > bestScore) {
-            bestScore = score1204;
-            ans = dir1204;
-        }
-
-        double score1114 = (currDist - Math.sqrt(loc1114.distanceSquaredTo(target))) / dist1114; // (-1, -4)
-        if (score1114 > bestScore) {
-            bestScore = score1114;
-            ans = dir1114;
-        }
-
-        double score1104 = (currDist - Math.sqrt(loc1104.distanceSquaredTo(target))) / dist1104; // (-1, 4)
-        if (score1104 > bestScore) {
-            bestScore = score1104;
-            ans = dir1104;
         }
 
         double score0014 = (currDist - Math.sqrt(loc0014.distanceSquaredTo(target))) / dist0014; // (0, -4)
@@ -2318,24 +1598,6 @@ public class RobotPathing extends Pathing {
             ans = dir0004;
         }
 
-        double score0114 = (currDist - Math.sqrt(loc0114.distanceSquaredTo(target))) / dist0114; // (1, -4)
-        if (score0114 > bestScore) {
-            bestScore = score0114;
-            ans = dir0114;
-        }
-
-        double score0104 = (currDist - Math.sqrt(loc0104.distanceSquaredTo(target))) / dist0104; // (1, 4)
-        if (score0104 > bestScore) {
-            bestScore = score0104;
-            ans = dir0104;
-        }
-
-        double score0214 = (currDist - Math.sqrt(loc0214.distanceSquaredTo(target))) / dist0214; // (2, -4)
-        if (score0214 > bestScore) {
-            bestScore = score0214;
-            ans = dir0214;
-        }
-
         double score0213 = (currDist - Math.sqrt(loc0213.distanceSquaredTo(target))) / dist0213; // (2, -3)
         if (score0213 > bestScore) {
             bestScore = score0213;
@@ -2346,18 +1608,6 @@ public class RobotPathing extends Pathing {
         if (score0203 > bestScore) {
             bestScore = score0203;
             ans = dir0203;
-        }
-
-        double score0204 = (currDist - Math.sqrt(loc0204.distanceSquaredTo(target))) / dist0204; // (2, 4)
-        if (score0204 > bestScore) {
-            bestScore = score0204;
-            ans = dir0204;
-        }
-
-        double score0313 = (currDist - Math.sqrt(loc0313.distanceSquaredTo(target))) / dist0313; // (3, -3)
-        if (score0313 > bestScore) {
-            bestScore = score0313;
-            ans = dir0313;
         }
 
         double score0312 = (currDist - Math.sqrt(loc0312.distanceSquaredTo(target))) / dist0312; // (3, -2)
@@ -2372,40 +1622,10 @@ public class RobotPathing extends Pathing {
             ans = dir0302;
         }
 
-        double score0303 = (currDist - Math.sqrt(loc0303.distanceSquaredTo(target))) / dist0303; // (3, 3)
-        if (score0303 > bestScore) {
-            bestScore = score0303;
-            ans = dir0303;
-        }
-
-        double score0412 = (currDist - Math.sqrt(loc0412.distanceSquaredTo(target))) / dist0412; // (4, -2)
-        if (score0412 > bestScore) {
-            bestScore = score0412;
-            ans = dir0412;
-        }
-
-        double score0411 = (currDist - Math.sqrt(loc0411.distanceSquaredTo(target))) / dist0411; // (4, -1)
-        if (score0411 > bestScore) {
-            bestScore = score0411;
-            ans = dir0411;
-        }
-
         double score0400 = (currDist - Math.sqrt(loc0400.distanceSquaredTo(target))) / dist0400; // (4, 0)
         if (score0400 > bestScore) {
             bestScore = score0400;
             ans = dir0400;
-        }
-
-        double score0401 = (currDist - Math.sqrt(loc0401.distanceSquaredTo(target))) / dist0401; // (4, 1)
-        if (score0401 > bestScore) {
-            bestScore = score0401;
-            ans = dir0401;
-        }
-
-        double score0402 = (currDist - Math.sqrt(loc0402.distanceSquaredTo(target))) / dist0402; // (4, 2)
-        if (score0402 > bestScore) {
-            bestScore = score0402;
-            ans = dir0402;
         }
 
         return ans;
