@@ -1,7 +1,7 @@
-package jackPlayer;
+package stupidjack;
 
 import battlecode.common.*;
-import jackPlayer.Pathing.RobotPathing;
+import jackPlayer.Controller;
 
 public class LauncherController extends Controller {
     private RobotType type;
@@ -13,7 +13,15 @@ public class LauncherController extends Controller {
         type = rc.getType();
         enemyTeam = rc.getTeam().opponent();
         visionRadiusSquared = rc.getType().visionRadiusSquared;
-        pathing = new RobotPathing(rc);
+    }
+
+    public MapLocation[] enemiesInVision(RobotController rc, int visionRadiusSquared, Team enemyTeam) throws GameActionException {
+        RobotInfo[] enemies = rc.senseNearbyRobots(visionRadiusSquared, enemyTeam);
+        MapLocation[] enemyLocations = new MapLocation[enemies.length];
+        for (int i = 0; i < enemies.length; i++) {
+            enemyLocations[i] = enemies[i].location;
+        }
+        return enemyLocations;
     }
 
     public MapLocation closestEnemy(RobotController rc) throws GameActionException {
@@ -53,7 +61,7 @@ public class LauncherController extends Controller {
         MapLocation enemyLocation = closestEnemy(rc);
         if (enemyLocation != null) {
             attack(rc, enemyLocation);
-            pathing.move(enemyLocation);
+            moveTowardsBFS(rc, enemyLocation);
         } else {
             rc.setIndicatorString("Exploring");
             generalExplore(rc);

@@ -1,14 +1,14 @@
-package jackPlayer;
+package stupidjack;
 
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
-import jackPlayer.Pathing.AmplifierPathing;
+import jackPlayer.Controller;
 
 public class AmplifierController extends Controller {
 
     public AmplifierController(RobotController rc) {
         super(rc);
-        pathing = new AmplifierPathing(rc);
+
     }
 
     @Override

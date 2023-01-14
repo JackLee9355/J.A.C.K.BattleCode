@@ -1,10 +1,10 @@
-package jackPlayer;
+package stupidjack;
 
 import battlecode.common.*;
 import jackPlayer.Communications.Communications;
 import jackPlayer.Communications.Headquarter;
 import jackPlayer.Communications.Well;
-import jackPlayer.Pathing.RobotPathing;
+import jackPlayer.Controller;
 
 import java.util.*;
 
@@ -18,7 +18,6 @@ public class CarrierController extends Controller {
         super(rc);
         assignWell(rc);
         assignHQ(rc);
-        pathing = new RobotPathing(rc);
     }
 
     private void assignWell(RobotController rc) throws GameActionException {
@@ -65,14 +64,13 @@ public class CarrierController extends Controller {
     }
 
     private void attemptDeposit(RobotController rc) throws GameActionException {
-        rc.setIndicatorString("Depositing");
         if (headquarter.isAdjacentTo(rc.getLocation()) && rc.isActionReady()) {
             int exAmount = rc.getResourceAmount(ResourceType.ELIXIR);
             if (exAmount > 0) {
                 rc.transferResource(headquarter, ResourceType.ELIXIR, exAmount);
             }
             int adAmount = rc.getResourceAmount(ResourceType.ADAMANTIUM);
-            if (adAmount > 0 && rc.isActionReady()) {
+            if (adAmount > 0) {
                 rc.transferResource(headquarter, ResourceType.ADAMANTIUM, adAmount);
             }
             int mnAmount = rc.getResourceAmount(ResourceType.MANA);
@@ -92,10 +90,6 @@ public class CarrierController extends Controller {
     public void run(RobotController rc) throws GameActionException {
         super.run(rc);
 
-//        if (rc.senseMapInfo(myLocation).hasCloud()) {
-//            pathing = new CarrierPathing(rc);
-//        }
-
         assignHQ(rc);
         if (wellLocation == null) {
             assignWell(rc);
@@ -106,9 +100,9 @@ public class CarrierController extends Controller {
         attemptCollect(rc);
         attemptDeposit(rc);
         if (totalHeld(rc) < 40) {
-            pathing.move(wellLocation);
+            moveTowardsBFS(rc, wellLocation);
         } else {
-            pathing.move(headquarter);
+            moveTowardsBFS(rc, headquarter);
         }
         attemptCollect(rc);
         attemptDeposit(rc);

@@ -3,27 +3,22 @@ package jackPlayer.Pathing;
 import battlecode.common.*;
 
 public class Tracker {
-    private final int ARRAY_SIZE = 60;
-    public boolean[][] visited;
+    private final static int ARRAY_SIZE = 60;
+    public long[] visitedLocations;
 
     public Tracker() {
-        visited = new boolean[ARRAY_SIZE][ARRAY_SIZE];
+        visitedLocations = new long[ARRAY_SIZE];
     }
 
     public void reset() {
-        visited = new boolean[ARRAY_SIZE][ARRAY_SIZE];
+        visitedLocations = new long[ARRAY_SIZE];
     }
 
     public void add(MapLocation location) {
-        if (location.x >= 0 && location.x < 60 && location.y >= 0 && location.y < 60) {
-            visited[location.x][location.y] = true;
-        }
+        visitedLocations[location.x] |= (1 << location.y);
     }
 
     public boolean check(MapLocation location) {
-        if (location.x >= 0 && location.x < 60 && location.y >= 0 && location.y < 60) {
-            return visited[location.x][location.y];
-        }
-        return false;
+        return (visitedLocations[location.x] & (1 << location.y)) > 0;
     }
 }

@@ -1,9 +1,8 @@
-package jackPlayer;
+package stupidjack;
 
 import jackPlayer.Communications.Communications;
 import jackPlayer.Communications.EntityType;
 import jackPlayer.Communications.Well;
-import jackPlayer.Pathing.Pathing;
 
 import java.util.*;
 
@@ -18,16 +17,15 @@ public abstract strictfp class Controller {
     protected final int mapWidth;
     protected final int mapHeight;
     protected MapLocation myLocation;
-    protected Pathing pathing;
     protected Direction alongObstacleDir = null;
-    protected final Random rng = new Random(6147);
+    protected static final Random rng = new Random(6147);
     private final int[][] map; // [x][y]
-    private final int[][] DIRS = new int[][]{
+    private static final int[][] DIRS = new int[][]{
             {0, 1}, {1, 0}, {1, 1},
             {0, -1}, {-1, 0}, {-1, -1},
             {1, -1}, {-1, 1}
     };
-    protected final Direction[] directions = {
+    protected static final Direction[] directions = {
             Direction.NORTH,
             Direction.NORTHEAST,
             Direction.EAST,
@@ -339,7 +337,7 @@ public abstract strictfp class Controller {
             front++;
         }
 
-        // Set the start to point to nothing (so there isn't a loop in the path that's followed back)
+        // Set the start to point to nothing (so there isn't a loop in the path thats followed back)
         cameFrom[queue[0][0]][queue[0][1]][0] = -1;
         cameFrom[queue[0][0]][queue[0][1]][1] = -1;
 
