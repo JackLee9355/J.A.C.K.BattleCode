@@ -4,7 +4,7 @@ import battlecode.common.*;
 
 public class Tracker {
     private final static int ARRAY_SIZE = 60;
-    public long[] visitedLocations;
+    private long[] visitedLocations;
 
     public Tracker() {
         visitedLocations = new long[ARRAY_SIZE];
