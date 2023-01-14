@@ -34,6 +34,7 @@ public class CarrierController extends Controller {
                 wellLocation = well.getMapLocation();
                 wellType = well.getType();
                 Communications.incrementWellWorkers(rc, well);
+                break;
             }
         }
     }
@@ -70,14 +71,17 @@ public class CarrierController extends Controller {
             int exAmount = rc.getResourceAmount(ResourceType.ELIXIR);
             if (exAmount > 0) {
                 rc.transferResource(headquarter, ResourceType.ELIXIR, exAmount);
+                return;
             }
             int adAmount = rc.getResourceAmount(ResourceType.ADAMANTIUM);
             if (adAmount > 0 && rc.isActionReady()) {
                 rc.transferResource(headquarter, ResourceType.ADAMANTIUM, adAmount);
+                return;
             }
             int mnAmount = rc.getResourceAmount(ResourceType.MANA);
             if (mnAmount > 0) {
                 rc.transferResource(headquarter, ResourceType.MANA, mnAmount);
+                return;
             }
         }
     }
@@ -102,6 +106,7 @@ public class CarrierController extends Controller {
             if (wellLocation == null)
                 return;
         }
+        rc.setIndicatorString("Assigned Well: " + wellLocation.x + ", " + wellLocation.y);
 
         attemptCollect(rc);
         attemptDeposit(rc);
