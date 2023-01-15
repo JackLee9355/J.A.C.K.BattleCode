@@ -4,23 +4,15 @@ import battlecode.common.*;
 import jackPlayer.Pathing.RobotPathing;
 
 public class LauncherController extends Controller {
-
-    // Maybe Defense?
-    public enum State {
-        ATTACK,
-        EXPLORE,
-        RUSH
-    }
-
-    private final RobotType type;
-    private final Team enemyTeam;
-    private final int visionRadiusSquared;
+    private RobotType type;
+    private Team enemyTeam;
+    private int visionRadiusSquared;
 
     public LauncherController(RobotController rc) {
         super(rc);
         type = rc.getType();
         enemyTeam = rc.getTeam().opponent();
-        visionRadiusSquared = type.visionRadiusSquared;
+        visionRadiusSquared = rc.getType().visionRadiusSquared;
         pathing = new RobotPathing(rc);
     }
 
