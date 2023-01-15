@@ -28,7 +28,7 @@ public class CarrierController extends Controller {
         // If this is too expensive switch to repeatedly taking the minimum
         Collections.sort(wells, Comparator.comparingInt(o -> curLoc.distanceSquaredTo(o.getMapLocation())));
         for (Well well : wells) {
-            if (well.getWorkerCount() <= 15 || well.getPressure() < 5) {
+            if (well.getWorkerCount() <= 15 /* || well.getPressure() < 5 */ ) {
                 wellLocation = well.getMapLocation();
                 wellType = well.getType();
                 Communications.incrementWellWorkers(rc, well);
