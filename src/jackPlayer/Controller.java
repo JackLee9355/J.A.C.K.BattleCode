@@ -17,6 +17,7 @@ public abstract strictfp class Controller {
     protected final int mapWidth;
     protected final int mapHeight;
     protected MapLocation myLocation;
+    protected final int[] sharedArray = new int[64];
     protected Direction alongObstacleDir = null;
     protected static final Random rng = new Random(6147);
     private final int[][] map; // [x][y]
