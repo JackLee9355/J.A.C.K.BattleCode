@@ -21,7 +21,7 @@ public static int numBoosts = 0;
 
     public void boost(RobotController rc) throws GameActionException {
         if(numBoosts == 3){
-            Controller.generalExplore(rc);
+            boosterExplore(rc);
             numBoosts = 0;
         }
         if(rc.canBoost()){
@@ -36,7 +36,7 @@ public static int numBoosts = 0;
                     if(nearbyRobots.length >= (numRobots/2) || nearbyRobots.length >= 20){
                         rc.boost();
                     } else { //otherwise it should move and try and be surrounded by other robots
-                        Controller.generalExplore(rc);
+                        boosterExplore(rc);
                     }
                 } else { //less than 1/3 of the map is covered in our robots
                     if(nearbyRobots.length >= (numRobots/100) && nearbyRobots.length > 0){
@@ -50,7 +50,7 @@ public static int numBoosts = 0;
                         rc.boost();
                         numBoosts += 1;
                     } else { //otherwise it should move and try and be surrounded by other robots
-                        Controller.generalExplore(rc);
+                        boosterExplore(rc);
                     }
                 } else {
                     if(nearbyRobots.length >= (numRobots/100) && nearbyRobots.length > 0){
@@ -60,5 +60,10 @@ public static int numBoosts = 0;
             }
 
         }
+    }
+
+    public void boosterExplore(RobotController rc){ //different from generalexplore because we want to go towards our robots
+
+
     }
 }
