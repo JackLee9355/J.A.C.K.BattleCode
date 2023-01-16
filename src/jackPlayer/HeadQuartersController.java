@@ -13,9 +13,11 @@ public class HeadQuartersController extends Controller {
     int carriersConstructed;
     int launchersConstructed;
     int amplifiersConstructed;
+    boolean hasBuiltAnchor;
 
     public HeadQuartersController(RobotController rc) {
         super(rc);
+        hasBuiltAnchor = false;
         try {
             List<Headquarter> headquarters = Communications.getHeadQuarters(rc);
             if (headquarters == null) {
@@ -49,6 +51,10 @@ public class HeadQuartersController extends Controller {
 
     private void constructCarrier(RobotController rc) throws GameActionException {
         if (rc.getResourceAmount(ResourceType.ADAMANTIUM) < 50)
+            return;
+
+        List<Well> wells = getShortStaffedWells(rc);
+        if (wells == null || wells.size() == 0)
             return;
 
         boolean built = false;
@@ -107,10 +113,12 @@ public class HeadQuartersController extends Controller {
                 Communications.iteratePage(rc);
             }
             List<Well> wells = Communications.getWells(rc);
-            if (wells != null && wells.size() > 0) {
-                Well w = wells.get(0);
+            if ((turnCount / 50) % 2 == 0 && wells != null && wells.size() > 0) {
+                Well w = wells.get((turnCount / 100) % wells.size());
                 MapLocation target = rotate(w.getMapLocation());
                 Communications.updateControl(rc, 1, target.x, target.y);
+            } else {
+                Communications.updateControl(rc, 0, mapWidth / 2, mapHeight / 2);
             }
 //            if (wells != null) {
 //                StringBuilder sb = new StringBuilder();
@@ -121,7 +129,16 @@ public class HeadQuartersController extends Controller {
 //                System.out.println(sb.toString());
 //            }
         }
-        constructUnits(rc);
+
+        if (turnCount >= 1000 && !hasBuiltAnchor) {
+            if (rc.canBuildAnchor(Anchor.STANDARD)) {
+                System.out.println("Anchor built");
+                rc.buildAnchor(Anchor.STANDARD);
+                hasBuiltAnchor = true;
+            }
+        } else {
+            constructUnits(rc);
+        }
     }
 
 }

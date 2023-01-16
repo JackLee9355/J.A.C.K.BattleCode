@@ -3,6 +3,7 @@ package jackPlayer;
 import battlecode.common.*;
 import jackPlayer.Communications.Communications;
 import jackPlayer.Communications.Headquarter;
+import jackPlayer.Communications.PageLocation;
 import jackPlayer.Communications.Well;
 import jackPlayer.Pathing.RobotPathing;
 
@@ -22,26 +23,30 @@ public class CarrierController extends Controller {
     }
 
     private void assignWell(RobotController rc) throws GameActionException {
-        List<Well> wells = Communications.getWells(rc);
+        List<Well> wells = getShortStaffedWells(rc);
         if (wells == null)
-            return; // TODO: Add logic here beside just waiting
+            return;
 
         MapLocation curLoc = rc.getLocation();
         // If this is too expensive switch to repeatedly taking the minimum
         Collections.sort(wells, Comparator.comparingInt(o -> curLoc.distanceSquaredTo(o.getMapLocation())));
         for (Well well : wells) {
-            if (well.getWorkerCount() <= 15 /* || well.getPressure() < 5 */ ) {
-                wellLocation = well.getMapLocation();
-                wellType = well.getType();
-                Communications.incrementWellWorkers(rc, well);
+            if (Communications.getPage(rc) != PageLocation.WELLS.page)
                 break;
-            }
+
+            wellLocation = well.getMapLocation();
+            wellType = well.getType();
+            Communications.incrementWellWorkers(rc, well);
+            break;
         }
     }
 
     private void assignHQ(RobotController rc) throws GameActionException {
         List<Headquarter> headQuarters = Communications.getHeadQuarters(rc);
         if (headQuarters == null || headQuarters.size() == 0) {
+            if (headquarter != null)
+                return;
+
             for (RobotInfo robot : rc.senseNearbyRobots()) {
                 if (robot.getType() == RobotType.HEADQUARTERS) {
                     MapLocation curLoc = rc.getLocation();
@@ -66,7 +71,6 @@ public class CarrierController extends Controller {
     }
 
     private void attemptDeposit(RobotController rc) throws GameActionException {
-        rc.setIndicatorString("Depositing");
         if (headquarter.isAdjacentTo(rc.getLocation()) && rc.isActionReady()) {
             int exAmount = rc.getResourceAmount(ResourceType.ELIXIR);
             if (exAmount > 0) {
@@ -83,7 +87,45 @@ public class CarrierController extends Controller {
                 rc.transferResource(headquarter, ResourceType.MANA, mnAmount);
                 return;
             }
+
+            if (rc.canTakeAnchor(headquarter, Anchor.STANDARD)) {
+                rc.takeAnchor(headquarter, Anchor.STANDARD);
+            }
         }
+    }
+
+    private void attemptToPutAnchor(RobotController rc) throws GameActionException {
+        if (rc.getAnchor() == null) {
+            return;
+        }
+
+        MapLocation closestIslandLocation = null;
+        int closest = Integer.MAX_VALUE;
+        int[] islands = rc.senseNearbyIslands();
+
+        for (int idx : islands) {
+            if (rc.senseAnchor(idx) != null) {
+                continue;
+            }
+
+            MapLocation[] islandLocations = rc.senseNearbyIslandLocations(idx);
+            for (MapLocation loc : islandLocations) {
+                int distance = myLocation.distanceSquaredTo(loc);
+                if (distance < closest) {
+                    closestIslandLocation = loc;
+                    closest = distance;
+                }
+            }
+        }
+
+        if (closestIslandLocation != null) {
+            pathing.move(closestIslandLocation);
+            if (rc.canPlaceAnchor()) {
+                System.out.println("Anchor Placed!");
+                rc.placeAnchor();
+            }
+        }
+
     }
 
     private int totalHeld(RobotController rc) {
@@ -96,7 +138,10 @@ public class CarrierController extends Controller {
     public void run(RobotController rc) throws GameActionException {
         super.run(rc);
 
+        attemptToPutAnchor(rc);
         assignHQ(rc);
+        if (headquarter == null)
+            return;
         if (wellLocation == null) {
             assignWell(rc);
             if (wellLocation == null)
