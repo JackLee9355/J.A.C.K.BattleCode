@@ -14,7 +14,7 @@ public abstract class Pathing {
     }
 
     public void move(MapLocation target) throws GameActionException {
-        bugMove(target);
+        BFSMove(target);
     }
 
     // Reset tracker if new target has been specified else continue pathing with current tracker
