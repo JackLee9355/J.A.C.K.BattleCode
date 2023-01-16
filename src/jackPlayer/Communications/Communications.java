@@ -169,7 +169,7 @@ public class Communications {
         }
         rc.writeSharedArray(PageLocation.INPUT.index, NULL_INDICATOR);
         if (type == EntityType.WELL && !added) {
-            System.out.println("Could not add well! (List full?)");
+            // System.out.println("Could not add well! (List full?)");
         }
     }
 
@@ -217,18 +217,18 @@ public class Communications {
     public static void incrementWellWorkers(RobotController rc, Well well) throws GameActionException {
         int countIndex = well.getWellIndex() + 1;
         if (getPage(rc) != PageLocation.WELLS.page) {
-            System.out.println("Trying to increment well on wrong page");
+            // System.out.println("Trying to increment well on wrong page");
             return;
         }
 
         if (!rc.canWriteSharedArray(countIndex, 0)) {
-            System.out.println("Can't write to shared array while incrementing well workers.");
+            // System.out.println("Can't write to shared array while incrementing well workers.");
             return;
         }
 
         int newCount = well.getWorkerCount() < 15 ? well.getWorkerCount() + 1 : 15;
-        //new RuntimeException().printStackTrace();
-        System.out.println("x " + well.getMapLocation().x + " y " + well.getMapLocation().y + " new Count " + newCount + " old " + well.getWorkerCount() + " turn " + rc.getRoundNum() + " team " + rc.getTeam().toString() + " robot x " + rc.getLocation().x + " robot y " + rc.getLocation().y);
+        // new RuntimeException().printStackTrace();
+        // System.out.println("x " + well.getMapLocation().x + " y " + well.getMapLocation().y + " new Count " + newCount + " old " + well.getWorkerCount() + " turn " + rc.getRoundNum() + " team " + rc.getTeam().toString() + " robot x " + rc.getLocation().x + " robot y " + rc.getLocation().y);
         rc.writeSharedArray(countIndex, packWellStatus(newCount, well.getPressure()));
     }
 
