@@ -31,8 +31,8 @@ public class Communications {
         return (x << PackedMask.WELL_X.shift) | (y << PackedMask.WELL_Y.shift);
     }
 
-    private static int packWellStatus() {
-        return -1; // TODO
+    private static int packWellStatus(int workerCount, int pressure) {
+        return (workerCount << PackedMask.WELL_WORKER_COUNT.shift) | (pressure << PackedMask.WELL_PRESSURE.shift);
     }
 
     private static int packHeadQuarters(int x, int y) {
@@ -43,7 +43,7 @@ public class Communications {
         return -1; // TODO
     }
 
-    private static int getPage(RobotController rc) throws GameActionException {
+    public static int getPage(RobotController rc) throws GameActionException {
         return unpack(rc.readSharedArray(PageLocation.CONTROL.index), PackedMask.PAGE_INDEX);
     }
 
@@ -206,6 +206,7 @@ public class Communications {
             int y = unpack(packedLoc, PackedMask.WELL_Y);
             int packedStatus = rc.readSharedArray(i + 1);
             int workerCount = unpack(packedStatus, PackedMask.WELL_WORKER_COUNT);
+            //System.out.println("This wells count is " + workerCount);
             int pressure = unpack(packedStatus, PackedMask.WELL_PRESSURE);
 
             wells.add(new Well(i, hasAmplifier, workerCount, pressure, intToResourceType(wellType), new MapLocation(x, y)));
@@ -215,14 +216,20 @@ public class Communications {
 
     public static void incrementWellWorkers(RobotController rc, Well well) throws GameActionException {
         int countIndex = well.getWellIndex() + 1;
+        if (getPage(rc) != PageLocation.WELLS.page) {
+            System.out.println("Trying to increment well on wrong page");
+            return;
+        }
+
         if (!rc.canWriteSharedArray(countIndex, 0)) {
-//            System.out.println("Can't write to shared array while incrementing well workers.");
+            System.out.println("Can't write to shared array while incrementing well workers.");
             return;
         }
 
         int newCount = well.getWorkerCount() < 15 ? well.getWorkerCount() + 1 : 15;
-        // TODO: Need to write a generalized pack function
-        rc.writeSharedArray(countIndex, (newCount << 4) & (well.getPressure()));
+        //new RuntimeException().printStackTrace();
+        System.out.println("x " + well.getMapLocation().x + " y " + well.getMapLocation().y + " new Count " + newCount + " old " + well.getWorkerCount() + " turn " + rc.getRoundNum() + " team " + rc.getTeam().toString() + " robot x " + rc.getLocation().x + " robot y " + rc.getLocation().y);
+        rc.writeSharedArray(countIndex, packWellStatus(newCount, well.getPressure()));
     }
 
     public static int getCoordination(RobotController rc) throws GameActionException {
