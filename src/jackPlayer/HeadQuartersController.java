@@ -75,10 +75,11 @@ public class HeadQuartersController extends Controller {
                 break;
             }
         }
-        if (built)
+        if (built) {
             carriersConstructed = 0;
             launchersConstructed = 0;
             amplifiersConstructed++;
+        }
     }
 
     private void constructUnits(RobotController rc) throws GameActionException {
@@ -105,7 +106,12 @@ public class HeadQuartersController extends Controller {
             if (turnCount > 10) {
                 Communications.iteratePage(rc);
             }
-//            List<Well> wells = Communications.getWells(rc);
+            List<Well> wells = Communications.getWells(rc);
+            if (wells != null && wells.size() > 0) {
+                Well w = wells.get(0);
+                MapLocation target = rotate(w.getMapLocation());
+                Communications.updateControl(rc, 1, target.x, target.y);
+            }
 //            if (wells != null) {
 //                StringBuilder sb = new StringBuilder();
 //                for (Well well : wells) {

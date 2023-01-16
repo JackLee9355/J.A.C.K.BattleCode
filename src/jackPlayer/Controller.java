@@ -1,6 +1,7 @@
 package jackPlayer;
 
 import java.util.*;
+
 import battlecode.common.*;
 import jackPlayer.Communications.Communications;
 import jackPlayer.Communications.EntityType;
@@ -47,7 +48,13 @@ public abstract strictfp class Controller {
         }
     }
 
-    protected void manageWell(RobotController rc, WellInfo wellInfo) throws GameActionException {
+    protected MapLocation rotate(MapLocation point) {
+        MapLocation center = new MapLocation(mapWidth / 2, mapHeight / 2);
+        Direction d = point.directionTo(center);
+        return center.add(d);
+    }
+
+    protected static void manageWell(RobotController rc, WellInfo wellInfo) throws GameActionException {
         List<Well> wells;
         if ((wells = Communications.getWells(rc)) == null) {
             return;
