@@ -44,4 +44,5 @@ public class Well {
     public int getWellIndex() {
         return wellIndex;
     }
+
 }
