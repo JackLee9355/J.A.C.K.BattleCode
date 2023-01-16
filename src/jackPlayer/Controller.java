@@ -13,8 +13,6 @@ public abstract strictfp class Controller {
     protected final int mapHeight;
     protected MapLocation myLocation;
     protected Pathing pathing;
-    protected final int[] sharedArray = new int[64];
-    protected Direction alongObstacleDir = null;
     protected final Random rng = new Random(6147);
     private final int[][] map; // [x][y]
     private final int[][] DIRS = new int[][]{
@@ -75,12 +73,6 @@ public abstract strictfp class Controller {
             locations.add(rc.getLocation().add(dir));
         }
         return locations;
-    }
-
-    protected void readEntireArray(RobotController rc) throws GameActionException {
-        for (int i = 0; i < 64; i++) {
-            sharedArray[i] = rc.readSharedArray(i);
-        }
     }
 
     private void writeWellCache(RobotController rc) throws GameActionException {

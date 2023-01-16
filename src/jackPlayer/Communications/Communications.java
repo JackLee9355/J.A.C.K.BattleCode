@@ -211,7 +211,7 @@ public class Communications {
     public static void incrementWellWorkers(RobotController rc, Well well) throws GameActionException {
         int countIndex = well.getWellIndex() + 1;
         if (!rc.canWriteSharedArray(countIndex, 0)) {
-            System.out.println("Can't write to shared array while incrementing well workers.");
+//            System.out.println("Can't write to shared array while incrementing well workers.");
             return;
         }
 
