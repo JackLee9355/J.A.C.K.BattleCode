@@ -13,8 +13,6 @@ public abstract strictfp class Controller {
     protected final int mapHeight;
     protected MapLocation myLocation;
     protected Pathing pathing;
-    protected final int[] sharedArray = new int[64];
-    protected Direction alongObstacleDir = null;
     protected final Random rng = new Random(6147);
     private final int[][] map; // [x][y]
     private final int[][] DIRS = new int[][]{
@@ -39,8 +37,6 @@ public abstract strictfp class Controller {
         mapHeight = rc.getMapHeight();
         map = new int[mapWidth][mapHeight];
     }
-
-    public static abstract void attack(RobotController rc) throws GameActionException;
 
     public void run(RobotController rc) throws GameActionException {
         turnCount++;
@@ -79,12 +75,6 @@ public abstract strictfp class Controller {
         return locations;
     }
 
-    protected void readEntireArray(RobotController rc) throws GameActionException {
-        for (int i = 0; i < 64; i++) {
-            sharedArray[i] = rc.readSharedArray(i);
-        }
-    }
-
     private void writeWellCache(RobotController rc) throws GameActionException {
         Set<MapLocation> storedWells = new HashSet<>();
         List<Well> wells = Communications.getWells(rc);
@@ -115,7 +105,7 @@ public abstract strictfp class Controller {
         return a[0] * b[0] + a[1] * b[1];
     }
 
-    public static void generalExplore(RobotController rc) throws GameActionException {
+    public void generalExplore(RobotController rc) throws GameActionException {
         if (rc.isMovementReady()) {
             RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam()); // TODO: Clouds
             Direction dir = directions[rng.nextInt(8)];
