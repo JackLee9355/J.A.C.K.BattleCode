@@ -1,8 +1,10 @@
 package jackPlayer;
 
 import battlecode.common.*;
-import jackPlayer.Communications.Communications;
-import jackPlayer.Pathing.RobotPathing;
+import jackPlayer.Communications.*;
+import jackPlayer.Pathing.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class LauncherController extends Controller {
 
@@ -14,12 +16,13 @@ public class LauncherController extends Controller {
         RUSH
     }
 
-    private final int WEIGHT_BOOSTER = 30;
-    private final int WEIGHT_DESTABILIZER = 30;
+    private final int WEIGHT_BOOSTER = 10;
+    private final int WEIGHT_DESTABILIZER = 10;
     private final int WEIGHT_LAUNCHER = 20;
-    private final int WEIGHT_AMPLIFIER = 10;
-    private final int WEIGHT_CARRIER = 10;
-    private final int WEIGHT_HEADQUARTERS = 0;
+    private final int WEIGHT_AMPLIFIER = 25;
+    private final int WEIGHT_CARRIER = 25;
+    private final int WEIGHT_HEADQUARTERS = 30;
+    private final int AVERAGE_MAX_HEALTH = 20;
     private final RobotType type;
     private final Team myTeam;
     private final Team enemyTeam;
@@ -39,12 +42,16 @@ public class LauncherController extends Controller {
 
     private MapLocation bestEnemyToAttack(RobotController rc) throws GameActionException {
         MapLocation bestEnemy = null;
-        int minWeight = Integer.MAX_VALUE;
+        double minWeight = Integer.MAX_VALUE;
 
         for (int i = 0; i < enemiesLength; i++) {
             MapLocation enemyLocation = enemies[i].getLocation();
-            int weight = myLocation.distanceSquaredTo(enemyLocation);
+            double enemyMaxHealth = enemies[i].getType().getMaxHealth();
+            double health = enemies[i].getHealth();
+            double distance = myLocation.distanceSquaredTo(enemyLocation);
+            double weight = 0;
 
+            // Priorities
             switch (enemies[i].getType()) {
                 case BOOSTER:
                     weight += WEIGHT_BOOSTER;
@@ -65,9 +72,22 @@ public class LauncherController extends Controller {
                     weight += WEIGHT_HEADQUARTERS;
             }
 
-            if (weight < minWeight) {
-                bestEnemy = enemyLocation;
-                minWeight = weight;
+            // Consider Health (let this be a major factor)
+            weight += (AVERAGE_MAX_HEALTH * health) / enemyMaxHealth;
+
+            // Prioritize enemies in attack radius
+            if (distance <= type.actionRadiusSquared) {
+                // Find the enemy with the lowest weight (best to attack)
+                if (weight < minWeight) {
+                    bestEnemy = enemyLocation;
+                    minWeight = weight;
+                }
+            } else {
+                // If enemy is out of radius, include distance in the weight
+                if (distance + weight < minWeight) {
+                    bestEnemy = enemyLocation;
+                    minWeight = weight;
+                }
             }
         }
 
@@ -145,7 +165,7 @@ public class LauncherController extends Controller {
     private void switchState(RobotController rc) throws GameActionException {
         if (Communications.getCoordination(rc) > 0) {
             launcherState = State.RUSH;
-        }  else if (friendliesLength < enemiesLength) {
+        }  else if (friendliesLength + 1 < enemiesLength) {
             launcherState = State.RETREAT;
         } else if (enemiesLength > 0) {
             launcherState = State.ATTACK;
@@ -154,8 +174,10 @@ public class LauncherController extends Controller {
         }
     }
 
-    private void scan(RobotController rc) {
+    private void scan(RobotController rc) throws GameActionException {
         rc.setIndicatorString("Scanning surroundings");
+
+        // Scan for enemies & friendlies
         enemiesLength = 0; friendliesLength = 0;
         RobotInfo[] robots = rc.senseNearbyRobots();
         enemies = new RobotInfo[robots.length];
@@ -171,6 +193,7 @@ public class LauncherController extends Controller {
                 friendlies[friendliesLength++] = robot;
             }
         }
+
     }
 
     @Override
