@@ -112,7 +112,7 @@ public abstract strictfp class Controller {
         for (MapLocation wellLoc : wellCache.keySet()) {
             if (!storedWells.contains(wellLoc)) {
                 manageWell(rc, wellCache.get(wellLoc));
-                System.out.println("Managing new well at location: " + wellLoc.x + ", " + wellLoc.y);
+                // System.out.println("Managing new well at location: " + wellLoc.x + ", " + wellLoc.y);
                 break; // We can't add more than one anyway
             }
         }
