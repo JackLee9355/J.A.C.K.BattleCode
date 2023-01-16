@@ -23,7 +23,6 @@ public class AmplifierController extends Controller {
     public void run(RobotController rc) throws GameActionException {
         super.run(rc);
         generalExplore(rc);
-        searchForWells(rc);
     }
 
     public void assignToWell(RobotController rc) throws GameActionException {
