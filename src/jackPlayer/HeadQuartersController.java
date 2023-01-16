@@ -132,7 +132,6 @@ public class HeadQuartersController extends Controller {
 
         if (turnCount >= 1000 && !hasBuiltAnchor) {
             if (rc.canBuildAnchor(Anchor.STANDARD)) {
-                System.out.println("Anchor built");
                 rc.buildAnchor(Anchor.STANDARD);
                 hasBuiltAnchor = true;
             }
