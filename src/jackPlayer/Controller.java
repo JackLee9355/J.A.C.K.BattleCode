@@ -409,7 +409,7 @@ public abstract strictfp class Controller {
         return a[0] * b[0] + a[1] * b[1];
     }
 
-    public void generalExplore(RobotController rc) throws GameActionException {
+    public static void generalExplore(RobotController rc) throws GameActionException {
         if (rc.isMovementReady()) {
             RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam()); // TODO: Clouds
             Direction dir = directions[rng.nextInt(8)];
