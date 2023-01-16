@@ -76,6 +76,21 @@ public abstract strictfp class Controller {
         }
     }
 
+    protected static List<Well> getShortStaffedWells(RobotController rc) throws GameActionException {
+        List<Well> wells = Communications.getWells(rc);
+
+        if (wells == null)
+            return null;
+
+        List<Well> shortWells = new ArrayList<>();
+        for (Well well : wells) {
+            if (well.getWorkerCount() < 10 /* || well.getPressure() < 5 */ ) {
+                shortWells.add(well);
+            }
+        }
+        return shortWells;
+    }
+
     protected List<MapLocation> adjacentSquares(RobotController rc) throws GameActionException {
         List<MapLocation> locations = new ArrayList<>();
         for (Direction dir : directions) {

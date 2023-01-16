@@ -51,6 +51,10 @@ public class HeadQuartersController extends Controller {
         if (rc.getResourceAmount(ResourceType.ADAMANTIUM) < 50)
             return;
 
+        List<Well> wells = getShortStaffedWells(rc);
+        if (wells == null || wells.size() == 0)
+            return;
+
         boolean built = false;
         for (MapLocation loc : adjacentSquares(rc)) {
             if (rc.canBuildRobot(RobotType.CARRIER, loc)) {
