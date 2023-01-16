@@ -83,7 +83,45 @@ public class CarrierController extends Controller {
                 rc.transferResource(headquarter, ResourceType.MANA, mnAmount);
                 return;
             }
+
+            if (rc.canTakeAnchor(headquarter, Anchor.STANDARD)) {
+                rc.takeAnchor(headquarter, Anchor.STANDARD);
+            }
         }
+    }
+
+    private void attemptToPutAnchor(RobotController rc) throws GameActionException {
+        if (rc.getAnchor() == null) {
+            return;
+        }
+
+        MapLocation closestIslandLocation = null;
+        int closest = Integer.MAX_VALUE;
+        int[] islands = rc.senseNearbyIslands();
+
+        for (int idx : islands) {
+            if (rc.senseAnchor(idx) != null) {
+                continue;
+            }
+
+            MapLocation[] islandLocations = rc.senseNearbyIslandLocations(idx);
+            for (MapLocation loc : islandLocations) {
+                int distance = myLocation.distanceSquaredTo(loc);
+                if (distance < closest) {
+                    closestIslandLocation = loc;
+                    closest = distance;
+                }
+            }
+        }
+
+        if (closestIslandLocation != null) {
+            pathing.move(closestIslandLocation);
+            if (rc.canPlaceAnchor()) {
+                System.out.println("Anchor Placed!");
+                rc.placeAnchor();
+            }
+        }
+
     }
 
     private int totalHeld(RobotController rc) {
@@ -96,6 +134,7 @@ public class CarrierController extends Controller {
     public void run(RobotController rc) throws GameActionException {
         super.run(rc);
 
+        attemptToPutAnchor(rc);
         assignHQ(rc);
         if (wellLocation == null) {
             assignWell(rc);
