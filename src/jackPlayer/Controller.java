@@ -101,7 +101,7 @@ public abstract strictfp class Controller {
         }
     }
 
-    private static double dotProduct(double[] a, double[] b) {
+    private double dotProduct(double[] a, double[] b) {
         return a[0] * b[0] + a[1] * b[1];
     }
 
