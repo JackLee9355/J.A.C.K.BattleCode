@@ -121,7 +121,6 @@ public class CarrierController extends Controller {
         if (closestIslandLocation != null) {
             pathing.move(closestIslandLocation);
             if (rc.canPlaceAnchor()) {
-                System.out.println("Anchor Placed!");
                 rc.placeAnchor();
             }
         }
