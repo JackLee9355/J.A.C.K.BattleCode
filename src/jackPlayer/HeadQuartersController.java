@@ -13,9 +13,11 @@ public class HeadQuartersController extends Controller {
     int carriersConstructed;
     int launchersConstructed;
     int amplifiersConstructed;
+    boolean hasBuiltAnchor;
 
     public HeadQuartersController(RobotController rc) {
         super(rc);
+        hasBuiltAnchor = false;
         try {
             List<Headquarter> headquarters = Communications.getHeadQuarters(rc);
             if (headquarters == null) {
@@ -125,7 +127,16 @@ public class HeadQuartersController extends Controller {
 //                System.out.println(sb.toString());
 //            }
         }
-        constructUnits(rc);
+
+        if (turnCount >= 1000 && !hasBuiltAnchor) {
+            if (rc.canBuildAnchor(Anchor.STANDARD)) {
+                System.out.println("Anchor built");
+                rc.buildAnchor(Anchor.STANDARD);
+                hasBuiltAnchor = true;
+            }
+        } else {
+            constructUnits(rc);
+        }
     }
 
 }
