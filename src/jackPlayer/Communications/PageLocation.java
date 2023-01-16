@@ -1,7 +1,7 @@
 package jackPlayer.Communications;
 
 public enum PageLocation {
-    PAGE_NUMBER(-1, 0, 1, 1),
+    CONTROL(-1, 0, 1, 1),
     HEADQUARTERS(0, 2, 6, 1),
     WELLS(0, 10, 64, 2),
     ENEMY_HEADQUARTERS(1, 2, 6, 1),
