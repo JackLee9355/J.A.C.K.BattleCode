@@ -49,9 +49,11 @@ public abstract strictfp class Controller {
     }
 
     protected MapLocation rotate(MapLocation point) {
-        MapLocation center = new MapLocation(mapWidth / 2, mapHeight / 2);
-        Direction d = point.directionTo(center);
-        return center.add(d);
+        int centerX = mapWidth / 2;
+        int centerY = mapHeight / 2;
+        int dx = centerX - point.x;
+        int dy = centerY - point.y;
+        return new MapLocation(centerX + dx, centerY + dy);
     }
 
     protected static void manageWell(RobotController rc, WellInfo wellInfo) throws GameActionException {
