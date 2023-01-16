@@ -111,11 +111,11 @@ public abstract strictfp class Controller {
         }
     }
 
-    private static double dotProduct(double[] a, double[] b) {
+    private double dotProduct(double[] a, double[] b) {
         return a[0] * b[0] + a[1] * b[1];
     }
 
-    public static void generalExplore(RobotController rc) throws GameActionException {
+    public void generalExplore(RobotController rc) throws GameActionException {
         if (rc.isMovementReady()) {
             RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam()); // TODO: Clouds
             Direction dir = directions[rng.nextInt(8)];
