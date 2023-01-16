@@ -106,11 +106,15 @@ public class HeadQuartersController extends Controller {
             if (turnCount > 10) {
                 Communications.iteratePage(rc);
             }
-            List<Well> wells = Communications.getWells(rc);
-            if (wells != null && wells.size() > 0) {
-                Well w = wells.get(0);
-                MapLocation target = rotate(w.getMapLocation());
-                Communications.updateControl(rc, 1, target.x, target.y);
+            if (turnCount < 100) {
+                List<Well> wells = Communications.getWells(rc);
+                if (wells != null && wells.size() > 0) {
+                    Well w = wells.get(0);
+                    MapLocation target = rotate(w.getMapLocation());
+                    Communications.updateControl(rc, 1, target.x, target.y);
+                }
+            } else {
+                Communications.updateControl(rc, 0, 0, 0);
             }
 //            if (wells != null) {
 //                StringBuilder sb = new StringBuilder();
