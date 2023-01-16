@@ -3,18 +3,8 @@ package jackPlayer;
 import battlecode.common.*;
 import jackPlayer.Communications.*;
 import jackPlayer.Pathing.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class LauncherController extends Controller {
-
-    private enum State {
-        ATTACK,
-        DEFEND,
-        RETREAT,
-        EXPLORE,
-        RUSH
-    }
 
     private final int WEIGHT_BOOSTER = 10;
     private final int WEIGHT_DESTABILIZER = 10;
@@ -28,7 +18,6 @@ public class LauncherController extends Controller {
     private final Team enemyTeam;
     private RobotInfo[] enemies;
     private RobotInfo[] friendlies;
-    private State launcherState;
     private int enemiesLength, friendliesLength;
 
     public LauncherController(RobotController rc) {
@@ -37,7 +26,6 @@ public class LauncherController extends Controller {
         myTeam = rc.getTeam();
         enemyTeam = myTeam.opponent();
         pathing = new RobotPathing(rc);
-        launcherState = State.EXPLORE;
     }
 
     private MapLocation bestEnemyToAttack(RobotController rc) throws GameActionException {
@@ -94,84 +82,16 @@ public class LauncherController extends Controller {
         return bestEnemy;
     }
 
-    private void rush(RobotController rc) throws GameActionException {
-        rc.setIndicatorString("Rushing");
-
-        MapLocation target = new MapLocation(Communications.getFocusX(rc), Communications.getFocusY(rc));
-        if (!myLocation.isWithinDistanceSquared(target, type.visionRadiusSquared)) {
-            pathing.move(target);
-        }
-
-        MapLocation enemyLocation = bestEnemyToAttack(rc);
-
-        if (rc.isActionReady() && enemyLocation != null) {
-            if (rc.canAttack(enemyLocation)) {
-                rc.attack(enemyLocation);
-            }
-            pathing.move(enemyLocation);
-        }
-    }
-
-    private void retreat(RobotController rc) throws GameActionException {
-        rc.setIndicatorString("Retreating");
-
-        MapLocation enemyLocation = bestEnemyToAttack(rc);
-
-        if (rc.isActionReady()) {
-            if (rc.canAttack(enemyLocation)) {
-                rc.attack(enemyLocation);
-            }
-        }
-
-        Direction awayFromEnemy = myLocation.directionTo(enemyLocation).opposite();
-        if (rc.isMovementReady()) {
-            if (rc.canMove(awayFromEnemy)) {
-                rc.move(awayFromEnemy);
-            } else {
-                generalExplore(rc);
-            }
-        }
-    }
-
-    private void attack(RobotController rc) throws GameActionException {
+    private boolean attack(RobotController rc, MapLocation enemyLocation) throws GameActionException {
         rc.setIndicatorString("Attacking");
 
-        // Spotted enemy, attack then move towards it
-        MapLocation enemyLocation = bestEnemyToAttack(rc);
-        if (rc.isActionReady()) {
-            if (rc.canAttack(enemyLocation)) {
-                rc.attack(enemyLocation);
-            }
-            pathing.move(enemyLocation);
-        } else {
-            rc.setIndicatorString("Exploring");
-            explore(rc);
-        }
-    }
-
-    private void explore(RobotController rc) throws GameActionException {
-        rc.setIndicatorString("Exploring");
-
-        generalExplore(rc);
-        // Enemy could be possibly spotted in attack range, try to attack
-        MapLocation enemyLocation = bestEnemyToAttack(rc);
         if (rc.isActionReady() && enemyLocation != null) {
             if (rc.canAttack(enemyLocation)) {
                 rc.attack(enemyLocation);
+                return true;
             }
         }
-    }
-
-    private void switchState(RobotController rc) throws GameActionException {
-        if (Communications.getCoordination(rc) > 0) {
-            launcherState = State.RUSH;
-        }  else if (friendliesLength + 1 < enemiesLength) {
-            launcherState = State.RETREAT;
-        } else if (enemiesLength > 0) {
-            launcherState = State.ATTACK;
-        } else {
-            launcherState = State.EXPLORE;
-        }
+        return false;
     }
 
     private void scan(RobotController rc) throws GameActionException {
@@ -200,21 +120,51 @@ public class LauncherController extends Controller {
     public void run(RobotController rc) throws GameActionException {
         super.run(rc);
         scan(rc);
-        switchState(rc);
 
-        switch (launcherState) {
-            case RUSH:
-                rush(rc);
-                break;
-            case RETREAT:
-                retreat(rc);
-                break;
-            case ATTACK:
-                attack(rc);
-                break;
-            case EXPLORE:
-                explore(rc);
+        boolean alreadyAttacked = false, alreadyMoved = false;
+
+        MapLocation enemyLocation = bestEnemyToAttack(rc);
+        alreadyAttacked = attack(rc, enemyLocation);
+
+        // Focus is set
+        if (Communications.getCoordination(rc) > 0) {
+            MapLocation target = new MapLocation(Communications.getFocusX(rc), Communications.getFocusY(rc));
+
+            // If not in focus radius
+            if (!myLocation.isWithinDistanceSquared(target, type.visionRadiusSquared)) {
+                pathing.move(target);
+                alreadyMoved = true;
+
+                // Scan for new enemies, try to attack
+                if (!alreadyAttacked) {
+                    scan(rc);
+                    enemyLocation = bestEnemyToAttack(rc);
+                    alreadyAttacked = attack(rc, enemyLocation);
+                }
+            }
         }
 
+        // Chase enemy if didn't move earlier
+        if (!alreadyMoved && enemyLocation != null) {
+            pathing.move(enemyLocation);
+            alreadyMoved = true;
+
+            // If enemy is now in attack radius, try an attack
+            if (!alreadyAttacked) {
+                alreadyAttacked = attack(rc, enemyLocation);
+            }
+        }
+
+        // No enemies in vision, explore
+        if (!alreadyMoved) {
+            generalExplore(rc);
+
+            // Scan for new enemies, try to attack
+            if (!alreadyAttacked) {
+                scan(rc);
+                enemyLocation = bestEnemyToAttack(rc);
+                attack(rc, enemyLocation);
+            }
+        }
     }
 }
