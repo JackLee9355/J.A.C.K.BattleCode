@@ -1,9 +1,6 @@
 package jackPlayer.Communications;
 
-import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
-import battlecode.common.ResourceType;
-import battlecode.common.RobotController;
+import battlecode.common.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,9 +18,9 @@ public class Communications {
         return (packedInt & mask.mask) >>> mask.shift;
     }
 
-    private static int packControl(int index, int coordination, int focus_x, int focus_y) {
+    private static int packControl(int index, int coordination, int focusX, int focusY) {
         return (index << PackedMask.PAGE_INDEX.shift) | (coordination << PackedMask.COORDINATION.shift) |
-                ((focus_x >> 1) << PackedMask.FOCUS_X.shift) | ((focus_y >> 1) << PackedMask.FOCUS_Y.shift);
+                ((focusX >> 1) << PackedMask.FOCUS_X.shift) | ((focusY >> 1) << PackedMask.FOCUS_Y.shift);
     }
 
     private static int packInput(int type, int x, int y) {
@@ -47,7 +44,7 @@ public class Communications {
     }
 
     private static int getPage(RobotController rc) throws GameActionException {
-        return unpack(rc.readSharedArray(PageLocation.PAGE_NUMBER.index), PackedMask.PAGE_INDEX);
+        return unpack(rc.readSharedArray(PageLocation.CONTROL.index), PackedMask.PAGE_INDEX);
     }
 
     private static ResourceType intToResourceType(int value) {
@@ -125,6 +122,14 @@ public class Communications {
         for (int i = 0; i < PAGE_SIZE; i++) {
             rc.writeSharedArray(i, pages[pageIndex][i]);
         }
+    }
+
+    public static void updateControl(RobotController rc, int coordination, int focusX, int focusY) throws GameActionException {
+        int pageIndex = getPage(rc);
+        for (int i = 0; i < PAGE_COUNT; i++) {
+            pages[i][PageLocation.CONTROL.index] = packControl(i, coordination, focusX, focusY);
+        }
+        rc.writeSharedArray(PageLocation.CONTROL.index, packControl(pageIndex, coordination, focusX, focusY));
     }
 
     public static void addFriendlyHeadquarters(RobotController rc, int x, int y, int index) throws GameActionException {
@@ -221,15 +226,15 @@ public class Communications {
     }
 
     public static int getCoordination(RobotController rc) throws GameActionException {
-        return unpack(rc.readSharedArray(PageLocation.PAGE_NUMBER.index), PackedMask.COORDINATION);
+        return unpack(rc.readSharedArray(PageLocation.CONTROL.index), PackedMask.COORDINATION);
     }
 
     public static int getFocusX(RobotController rc) throws GameActionException {
-        return unpack(rc.readSharedArray(PageLocation.PAGE_NUMBER.index), PackedMask.FOCUS_X) * 2;
+        return unpack(rc.readSharedArray(PageLocation.CONTROL.index), PackedMask.FOCUS_X) * 2;
     }
 
     public static int getFocusY(RobotController rc) throws GameActionException {
-        return unpack(rc.readSharedArray(PageLocation.PAGE_NUMBER.index), PackedMask.FOCUS_Y) * 2;
+        return unpack(rc.readSharedArray(PageLocation.CONTROL.index), PackedMask.FOCUS_Y) * 2;
     }
 }
 

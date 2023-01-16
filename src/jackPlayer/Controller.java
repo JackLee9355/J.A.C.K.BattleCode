@@ -1,6 +1,7 @@
 package jackPlayer;
 
 import java.util.*;
+
 import battlecode.common.*;
 import jackPlayer.Communications.Communications;
 import jackPlayer.Communications.EntityType;
@@ -45,6 +46,12 @@ public abstract strictfp class Controller {
         if (turnCount > 1 && rc.canWriteSharedArray(0, 0)) { // Worried about weird behavior on master hq
             writeWellCache(rc);
         }
+    }
+
+    protected MapLocation rotate(MapLocation point) {
+        MapLocation center = new MapLocation(mapWidth / 2, mapHeight / 2);
+        Direction d = point.directionTo(center);
+        return center.add(d);
     }
 
     protected static void manageWell(RobotController rc, WellInfo wellInfo) throws GameActionException {
