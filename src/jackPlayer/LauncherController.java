@@ -17,8 +17,6 @@ public class LauncherController extends Controller {
     private final Team myTeam;
     private final Team enemyTeam;
     private RobotInfo[] enemies;
-    private RobotInfo[] friendlies;
-    private int enemiesLength, friendliesLength;
 
     public LauncherController(RobotController rc) {
         super(rc);
@@ -32,7 +30,12 @@ public class LauncherController extends Controller {
         MapLocation bestEnemy = null;
         double minWeight = Integer.MAX_VALUE;
 
-        for (int i = 0; i < enemiesLength; i++) {
+        for (int i = 0; i < enemies.length; i++) {
+
+            if (enemies[i].getType() == RobotType.HEADQUARTERS) {
+                continue;
+            }
+
             MapLocation enemyLocation = enemies[i].getLocation();
             double enemyMaxHealth = enemies[i].getType().getMaxHealth();
             double health = enemies[i].getHealth();
@@ -94,34 +97,11 @@ public class LauncherController extends Controller {
         return false;
     }
 
-    private void scan(RobotController rc) throws GameActionException {
-        rc.setIndicatorString("Scanning surroundings");
-
-        // Scan for enemies & friendlies
-        enemiesLength = 0; friendliesLength = 0;
-        RobotInfo[] robots = rc.senseNearbyRobots();
-        enemies = new RobotInfo[robots.length];
-        friendlies = new RobotInfo[robots.length];
-
-        for (RobotInfo robot : robots) {
-            if (robot.getTeam().equals(enemyTeam)) {
-                // Ignore headquarters for now
-                if (!robot.getType().equals(RobotType.HEADQUARTERS)) {
-                    enemies[enemiesLength++] = robot;
-                }
-            } else {
-                friendlies[friendliesLength++] = robot;
-            }
-        }
-
-    }
-
     @Override
     public void run(RobotController rc) throws GameActionException {
         super.run(rc);
-        scan(rc);
-
         boolean alreadyAttacked = false, alreadyMoved = false;
+        enemies = rc.senseNearbyRobots(type.visionRadiusSquared, enemyTeam);
 
         MapLocation enemyLocation = bestEnemyToAttack(rc);
         alreadyAttacked = attack(rc, enemyLocation);
@@ -135,9 +115,8 @@ public class LauncherController extends Controller {
                 pathing.move(target);
                 alreadyMoved = true;
 
-                // Scan for new enemies, try to attack
+                // Find new best enemy to attack and try now
                 if (!alreadyAttacked) {
-                    scan(rc);
                     enemyLocation = bestEnemyToAttack(rc);
                     alreadyAttacked = attack(rc, enemyLocation);
                 }
@@ -159,9 +138,8 @@ public class LauncherController extends Controller {
         if (!alreadyMoved) {
             generalExplore(rc);
 
-            // Scan for new enemies, try to attack
+            // Find new best enemy to attack and try now
             if (!alreadyAttacked) {
-                scan(rc);
                 enemyLocation = bestEnemyToAttack(rc);
                 attack(rc, enemyLocation);
             }
