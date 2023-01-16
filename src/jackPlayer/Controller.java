@@ -40,8 +40,6 @@ public abstract strictfp class Controller {
         map = new int[mapWidth][mapHeight];
     }
 
-    public static abstract void attack(RobotController rc) throws GameActionException;
-
     public void run(RobotController rc) throws GameActionException {
         turnCount++;
         myLocation = rc.getLocation();
