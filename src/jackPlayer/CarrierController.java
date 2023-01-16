@@ -104,6 +104,7 @@ public class CarrierController extends Controller {
         }
         rc.setIndicatorString("Assigned Well: " + wellLocation.x + ", " + wellLocation.y);
 
+        attack(rc);
         attemptCollect(rc);
         attemptDeposit(rc);
         if (totalHeld(rc) < 40) {
@@ -111,6 +112,7 @@ public class CarrierController extends Controller {
         } else {
             pathing.move(headquarter);
         }
+        attack(rc);
         attemptCollect(rc);
         attemptDeposit(rc);
     }
