@@ -3,6 +3,7 @@ package jackPlayer;
 import battlecode.common.*;
 import jackPlayer.Communications.Communications;
 import jackPlayer.Communications.Well;
+import jackPlayer.Pathing.RobotPathing;
 
 import java.util.Arrays;
 import java.util.List;
@@ -14,7 +15,7 @@ public class AmplifierController extends Controller {
     public static WellInfo [] nearbyWells;
     public AmplifierController(RobotController rc) {
         super(rc);
-
+        pathing = new RobotPathing(rc);
     }
 
     @Override

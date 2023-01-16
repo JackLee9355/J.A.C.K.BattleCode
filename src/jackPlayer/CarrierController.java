@@ -4,6 +4,7 @@ import battlecode.common.*;
 import jackPlayer.Communications.Communications;
 import jackPlayer.Communications.Headquarter;
 import jackPlayer.Communications.Well;
+import jackPlayer.Pathing.RobotPathing;
 
 import java.util.*;
 
@@ -17,6 +18,7 @@ public class CarrierController extends Controller {
         super(rc);
         assignWell(rc);
         assignHQ(rc);
+        pathing = new RobotPathing(rc);
     }
 
     private void assignWell(RobotController rc) throws GameActionException {
@@ -64,6 +66,7 @@ public class CarrierController extends Controller {
     }
 
     private void attemptDeposit(RobotController rc) throws GameActionException {
+        rc.setIndicatorString("Depositing");
         if (headquarter.isAdjacentTo(rc.getLocation()) && rc.isActionReady()) {
             int exAmount = rc.getResourceAmount(ResourceType.ELIXIR);
             if (exAmount > 0) {
@@ -71,7 +74,7 @@ public class CarrierController extends Controller {
                 return;
             }
             int adAmount = rc.getResourceAmount(ResourceType.ADAMANTIUM);
-            if (adAmount > 0) {
+            if (adAmount > 0 && rc.isActionReady()) {
                 rc.transferResource(headquarter, ResourceType.ADAMANTIUM, adAmount);
                 return;
             }
@@ -104,9 +107,9 @@ public class CarrierController extends Controller {
         attemptCollect(rc);
         attemptDeposit(rc);
         if (totalHeld(rc) < 40) {
-            moveTowards(rc, wellLocation);
+            pathing.move(wellLocation);
         } else {
-            moveTowards(rc, headquarter);
+            pathing.move(headquarter);
         }
         attemptCollect(rc);
         attemptDeposit(rc);
