@@ -139,12 +139,16 @@ public class CarrierController extends Controller {
 
         attemptToPutAnchor(rc);
         assignHQ(rc);
-        if (headquarter == null)
+        if (headquarter == null) {
+            generalExplore(rc);
             return;
+        }
         if (wellLocation == null) {
             assignWell(rc);
-            if (wellLocation == null)
+            if (wellLocation == null) {
+                generalExplore(rc);
                 return;
+            }
         }
         rc.setIndicatorString("Assigned Well: " + wellLocation.x + ", " + wellLocation.y);
 
