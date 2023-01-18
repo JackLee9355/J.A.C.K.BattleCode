@@ -110,6 +110,11 @@ public class CarrierController extends Controller {
         }
         attemptCollect(rc);
         attemptDeposit(rc);
+        int m = rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ELIXIR);
+        if(m >= 5 && m % 5 < 4){
+            attack(rc);
+        }
+
     }
 
 
