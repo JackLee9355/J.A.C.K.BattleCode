@@ -138,31 +138,37 @@ public class CarrierController extends Controller {
         super.run(rc);
 
         attemptToPutAnchor(rc);
-        assignHQ(rc);
-        if (headquarter == null) {
-            generalExplore(rc);
-            return;
-        }
-        if (wellLocation == null) {
-            assignWell(rc);
-            if (wellLocation == null) {
-                generalExplore(rc);
-                return;
-            }
-        }
-        rc.setIndicatorString("Assigned Well: " + wellLocation.x + ", " + wellLocation.y);
 
         attack(rc);
-        attemptCollect(rc);
-        attemptDeposit(rc);
         if (totalHeld(rc) < 40) {
-            pathing.move(wellLocation);
+            if (wellLocation == null) {
+                assignWell(rc);
+            }
+            if (wellLocation == null) {
+                generalExplore(rc);
+            } else {
+                rc.setIndicatorString("Gathering from Well: " + wellLocation.x + ", " + wellLocation.y);
+                if (wellLocation.distanceSquaredTo(myLocation) > 2) {
+//                    pathingAStar.pathTo(rc, wellLocation);
+                    pathing.move(wellLocation);
+                }
+                attemptCollect(rc);
+            }
         } else {
-            pathing.move(headquarter);
+            if (headquarter == null) {
+                assignHQ(rc);
+            }
+            if (headquarter == null) {
+                generalExplore(rc);
+            } else {
+                rc.setIndicatorString("Returning to Headquarters: " + headquarter.x + ", " + headquarter.y);
+                if (headquarter.distanceSquaredTo(myLocation) > 2) {
+//                    pathingAStar.pathTo(rc, headquarter);
+                    pathing.move(headquarter);
+                }
+                attemptDeposit(rc);
+            }
         }
-        attack(rc);
-        attemptCollect(rc);
-        attemptDeposit(rc);
     }
 
 
@@ -174,8 +180,8 @@ public class CarrierController extends Controller {
             for (int i = 0; i < enemies.length; i++) {
                 int enemyHealth = enemies[i].getHealth();
                 RobotInfo enemy = enemies[i];
-                if(enemy.getType().equals(RobotType.CARRIER) || enemy.getType().equals(RobotType.DESTABILIZER) || enemy.getType().equals(RobotType.LAUNCHER)) {
-                    if(enemyHealth == rc.getType().damage){
+                if (enemy.getType().equals(RobotType.CARRIER) || enemy.getType().equals(RobotType.DESTABILIZER) || enemy.getType().equals(RobotType.LAUNCHER)) {
+                    if (enemyHealth == rc.getType().damage) {
                         indexAttack = i;
                         break;
                     } else if (enemyHealth < health) {
