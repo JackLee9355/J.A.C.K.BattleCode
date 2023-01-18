@@ -86,13 +86,13 @@ public strictfp class RobotPlayer {
                 // Oh no! It looks like we did something illegal in the Battlecode world. You should
                 // handle GameActionExceptions judiciously, in case unexpected events occur in the game
                 // world. Remember, uncaught exceptions cause your robot to explode!
-                System.out.println(rc.getType() + " Exception");
+//                System.out.println(rc.getType() + " Exception");
                 e.printStackTrace();
 
             } catch (Exception e) {
                 // Oh no! It looks like our code tried to do something bad. This isn't a
                 // GameActionException, so it's more likely to be a bug in our code.
-                System.out.println(rc.getType() + " Exception");
+//                System.out.println(rc.getType() + " Exception");
                 e.printStackTrace();
 
             } finally {
@@ -117,7 +117,7 @@ public strictfp class RobotPlayer {
         if (rc.canBuildAnchor(Anchor.STANDARD)) {
             // If we can build an anchor do it!
             rc.buildAnchor(Anchor.STANDARD);
-            rc.setIndicatorString("Building anchor! " + rc.getAnchor());
+//            rc.setIndicatorString("Building anchor! " + rc.getAnchor());
         }
         if (rng.nextBoolean()) {
             // Let's try to build a carrier.

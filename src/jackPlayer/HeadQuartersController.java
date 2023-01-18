@@ -13,9 +13,11 @@ public class HeadQuartersController extends Controller {
     int carriersConstructed;
     int launchersConstructed;
     int amplifiersConstructed;
+    boolean hasBuiltAnchor;
 
     public HeadQuartersController(RobotController rc) {
         super(rc);
+        hasBuiltAnchor = false;
         try {
             List<Headquarter> headquarters = Communications.getHeadQuarters(rc);
             if (headquarters == null) {
@@ -51,6 +53,10 @@ public class HeadQuartersController extends Controller {
         if (rc.getResourceAmount(ResourceType.ADAMANTIUM) < 50)
             return;
 
+        List<Well> wells = getShortStaffedWells(rc);
+        if (wells == null || wells.size() == 0)
+            return;
+
         boolean built = false;
         for (MapLocation loc : adjacentSquares(rc)) {
             if (rc.canBuildRobot(RobotType.CARRIER, loc)) {
@@ -75,10 +81,11 @@ public class HeadQuartersController extends Controller {
                 break;
             }
         }
-        if (built)
+        if (built) {
             carriersConstructed = 0;
             launchersConstructed = 0;
             amplifiersConstructed++;
+        }
     }
 
     private void constructUnits(RobotController rc) throws GameActionException {
@@ -105,7 +112,14 @@ public class HeadQuartersController extends Controller {
             if (turnCount > 10) {
                 Communications.iteratePage(rc);
             }
-//            List<Well> wells = Communications.getWells(rc);
+            List<Well> wells = Communications.getWells(rc);
+            if ((turnCount / 50) % 2 == 0 && wells != null && wells.size() > 0) {
+                Well w = wells.get((turnCount / 100) % wells.size());
+                MapLocation target = rotate(w.getMapLocation());
+                Communications.updateControl(rc, 1, target.x, target.y);
+            } else {
+                Communications.updateControl(rc, 0, mapWidth / 2, mapHeight / 2);
+            }
 //            if (wells != null) {
 //                StringBuilder sb = new StringBuilder();
 //                for (Well well : wells) {
@@ -115,7 +129,15 @@ public class HeadQuartersController extends Controller {
 //                System.out.println(sb.toString());
 //            }
         }
-        constructUnits(rc);
+
+        if (turnCount >= 1000 && !hasBuiltAnchor) {
+            if (rc.canBuildAnchor(Anchor.STANDARD)) {
+                rc.buildAnchor(Anchor.STANDARD);
+                hasBuiltAnchor = true;
+            }
+        } else {
+            constructUnits(rc);
+        }
     }
 
 }

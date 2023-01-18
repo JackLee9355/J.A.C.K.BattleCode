@@ -3,6 +3,7 @@ package jackPlayer;
 import battlecode.common.*;
 import jackPlayer.Communications.Communications;
 import jackPlayer.Communications.Well;
+import jackPlayer.Pathing.RobotPathing;
 
 import java.util.Arrays;
 import java.util.List;
@@ -12,10 +13,11 @@ public class AmplifierController extends Controller {
     public static MapLocation assignedWellLoc = null;
     public static boolean atWell = false;
     public static List<Well> wells;
-    public static WellInfo [] nearbyWells;
+    public static WellInfo[] nearbyWells;
+
     public AmplifierController(RobotController rc) {
         super(rc);
-
+        pathing = new RobotPathing(rc);
     }
 
     @Override
@@ -33,13 +35,16 @@ public class AmplifierController extends Controller {
     public void assignToWell(RobotController rc) throws GameActionException {
         //assign to a well that is the closest and is unoccupied
         wells = Communications.getWells(rc);
+        if (wells == null) {
+            return;
+        }
         MapLocation curr = rc.getLocation();
         Well assignTo = null;
         int distToWell = 1000;
-        for(Well well : wells){
-            if(!well.isAmplifierPresent()){
+        for (Well well : wells) {
+            if (!well.isAmplifierPresent()) {
                 int tempDistToWell = curr.distanceSquaredTo(well.getMapLocation());
-                if(tempDistToWell < distToWell){
+                if (tempDistToWell < distToWell) {
                     assignTo = well;
                     distToWell = tempDistToWell;
                 }
@@ -50,14 +55,11 @@ public class AmplifierController extends Controller {
     }
 
     public void moveToWell(RobotController rc) throws GameActionException {
-
             MapLocation curr = rc.getLocation();
-            if (curr.distanceSquaredTo(assignedWellLoc) > 2 && rc.canMove(curr.directionTo(assignedWellLoc))) {
+            if (curr.distanceSquaredTo(assignedWellLoc) > 4 && rc.canMove(curr.directionTo(assignedWellLoc))) {
                 rc.move(curr.directionTo(assignedWellLoc));
-            } else if (curr.distanceSquaredTo(assignedWellLoc) <= 2) { //arrived at well
+            } else if (curr.distanceSquaredTo(assignedWellLoc) <= 4) { //arrived at well
                 atWell = true;
-                searchForWells(rc); //see if there are any other nearby wells to add and to get the WellInfo of the assigned well
-
             }
         }
 
@@ -70,22 +72,25 @@ public class AmplifierController extends Controller {
     }
 
     public static void searchForWells(RobotController rc) throws GameActionException {
-        WellInfo [] temp = rc.senseNearbyWells();
+        WellInfo[] temp = rc.senseNearbyWells();
         wells = Communications.getWells(rc);
-        if(!temp.equals(nearbyWells)){ //means we found a new one
+        if (wells == null) {
+            return;
+        }
+        if (!Arrays.equals(temp, nearbyWells)) { //means we found a new one
             nearbyWells = temp;
-            for(Well well : wells){
+            for (Well well : wells) {
                 WellInfo wellToUpdate = null;
-                for(WellInfo nearbyWell : nearbyWells){
-                    if(nearbyWell.getMapLocation().distanceSquaredTo(well.getMapLocation()) > 0 || nearbyWell.getMapLocation().distanceSquaredTo(assignedWellLoc) == 0){
+                for (WellInfo nearbyWell : nearbyWells) {
+                    if (nearbyWell.getMapLocation().distanceSquaredTo(well.getMapLocation()) > 0 || nearbyWell.getMapLocation().distanceSquaredTo(assignedWellLoc) == 0) {
                         wellToUpdate = nearbyWell;
                         break;
                     }
                 }
-                if(wellToUpdate != null){
+                if (wellToUpdate != null) {
                     //manageWell
                     updateWellInfo(rc, wellToUpdate);
-                    if(assignedWell == null){
+                    if (assignedWell == null) {
                         assignedWell = well;
                         assignedWellLoc = well.getMapLocation();
                     }

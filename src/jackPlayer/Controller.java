@@ -1,26 +1,27 @@
 package jackPlayer;
 
-import jackPlayer.Communications.Communications;
-import jackPlayer.Communications.EntityType;
-import jackPlayer.Communications.Well;
-
 import java.util.*;
 
 import battlecode.common.*;
+import jackPlayer.Communications.Communications;
+import jackPlayer.Communications.EntityType;
+import jackPlayer.Communications.Well;
+import jackPlayer.Pathing.Pathing;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
-public abstract class Controller {
+public abstract strictfp class Controller {
     protected int turnCount = 0;
     protected final int mapWidth;
     protected final int mapHeight;
     protected MapLocation myLocation;
-    protected final int[] sharedArray = new int[64];
-    protected Direction alongObstacleDir = null;
-    protected static final Random rng = new Random(6147);
-    protected static final Direction[] directions = {
+    protected Pathing pathing;
+    protected final Random rng = new Random(6147);
+    private final int[][] map; // [x][y]
+    private final int[][] DIRS = new int[][]{
+            {0, 1}, {1, 0}, {1, 1},
+            {0, -1}, {-1, 0}, {-1, -1},
+            {1, -1}, {-1, 1}
+    };
+    protected final Direction[] directions = {
             Direction.NORTH,
             Direction.NORTHEAST,
             Direction.EAST,
@@ -30,15 +31,29 @@ public abstract class Controller {
             Direction.WEST,
             Direction.NORTHWEST,
     };
+    protected Map<MapLocation, WellInfo> wellCache = new HashMap<>();
 
     public Controller(RobotController rc) {
         mapWidth = rc.getMapWidth();
         mapHeight = rc.getMapHeight();
+        map = new int[mapWidth][mapHeight];
     }
 
     public void run(RobotController rc) throws GameActionException {
         turnCount++;
         myLocation = rc.getLocation();
+        cacheNewWells(rc);
+        if (turnCount > 1 && rc.canWriteSharedArray(0, 0)) { // Worried about weird behavior on master hq
+            writeWellCache(rc);
+        }
+    }
+
+    protected MapLocation rotate(MapLocation point) {
+        int centerX = mapWidth / 2;
+        int centerY = mapHeight / 2;
+        int dx = centerX - point.x;
+        int dy = centerY - point.y;
+        return new MapLocation(centerX + dx, centerY + dy);
     }
 
     protected static void manageWell(RobotController rc, WellInfo wellInfo) throws GameActionException {
@@ -61,6 +76,21 @@ public abstract class Controller {
         }
     }
 
+    protected static List<Well> getShortStaffedWells(RobotController rc) throws GameActionException {
+        List<Well> wells = Communications.getWells(rc);
+
+        if (wells == null)
+            return null;
+
+        List<Well> shortWells = new ArrayList<>();
+        for (Well well : wells) {
+            if (well.getWorkerCount() < 10 /* || well.getPressure() < 5 */ ) {
+                shortWells.add(well);
+            }
+        }
+        return shortWells;
+    }
+
     protected List<MapLocation> adjacentSquares(RobotController rc) throws GameActionException {
         List<MapLocation> locations = new ArrayList<>();
         for (Direction dir : directions) {
@@ -69,255 +99,62 @@ public abstract class Controller {
         return locations;
     }
 
-    protected void readEntireArray(RobotController rc) throws GameActionException {
-        for (int i = 0; i < 64; i++) {
-            sharedArray[i] = rc.readSharedArray(i);
-        }
-    }
+    private void writeWellCache(RobotController rc) throws GameActionException {
+        Set<MapLocation> storedWells = new HashSet<>();
+        List<Well> wells = Communications.getWells(rc);
+        if (wells == null)
+            return;
 
-    public MapLocation closestLocation(MapLocation[] locations, MapLocation relative, MapLocation target) throws GameActionException {
-        MapLocation closestToTarget = relative;
-        int closestDistance = closestToTarget.distanceSquaredTo(target);
-        for (MapLocation location : locations) {
-            int currDistance = location.distanceSquaredTo(target);
-            if (currDistance < closestDistance) {
-                closestToTarget = location;
-                closestDistance = currDistance;
+        for (Well well : wells) {
+            storedWells.add(well.getMapLocation());
+        }
+
+        for (MapLocation wellLoc : wellCache.keySet()) {
+            if (!storedWells.contains(wellLoc)) {
+                manageWell(rc, wellCache.get(wellLoc));
+                // System.out.println("Managing new well at location: " + wellLoc.x + ", " + wellLoc.y);
+                break; // We can't add more than one anyway
             }
         }
-        return closestToTarget;
+        // wellCache.clear(); Can be added for performance later if we didn't break out of the loop
     }
 
-    public MapLocation[] enemiesInVision(RobotController rc, int visionRadiusSquared, Team enemyTeam) throws GameActionException {
-        RobotInfo[] enemies = rc.senseNearbyRobots(visionRadiusSquared, enemyTeam);
-        MapLocation[] enemyLocations = new MapLocation[enemies.length];
-        for (int i = 0; i < enemies.length; i++) {
-            enemyLocations[i] = enemies[i].location;
-        }
-        return enemyLocations;
-    }
-
-    public boolean moveTowards(RobotController rc, MapLocation target) throws GameActionException {
-        // Cool down active, can't move
-        if (!rc.isMovementReady()) {
-            return false;
-        }
-
-        // Verify it's not at target location
-        if (myLocation.equals(target)) {
-            return true;
-        }
-
-        // Get direction towards target
-        Direction dir = myLocation.directionTo(target);
-
-        // Move if no wall is present in the direction && bytecode is available to check
-        if (rc.canMove(dir)) {
-            rc.move(dir);
-            alongObstacleDir = null;
-        } else {
-            // Set the along the obstacle direction to current direction
-            if (alongObstacleDir == null) alongObstacleDir = dir;
-
-            for (int i = 0; i < 8; i++) {
-
-                if (rc.canMove(alongObstacleDir)) {
-                    rc.move(alongObstacleDir);
-                    // Turn back towards obstacle
-                    alongObstacleDir = alongObstacleDir.rotateLeft();
-                    return false;
-                }
-
-                // Keep rotating direction until it finds an empty space to move in
-                alongObstacleDir = alongObstacleDir.rotateRight();
-            }
-        }
-
-        return false;
-    }
-
-    class Node implements Comparable<Node> {
-        public MapLocation location;
-        public int weight;
-
-        public Node(MapLocation location, int weight) {
-            this.location = location;
-            this.weight = weight;
-        }
-
-        @Override
-        public int compareTo(Node n) {
-            return Integer.compare(this.weight, n.weight);
+    private void cacheNewWells(RobotController rc) throws GameActionException {
+        for (WellInfo wellInfo : rc.senseNearbyWells()) {
+            wellCache.put(wellInfo.getMapLocation(), wellInfo);
         }
     }
 
-    // A Star Implementation
-    // 3 costs:
-    // G-cost = distance from starting node
-    // H-cost = distance from end node
-    // F-cost = G-cost + H-cost
-    public boolean moveTowardsAStar(RobotController rc, MapLocation target) throws GameActionException {
-        // Cool down active, can't move
-        if (!rc.isMovementReady()) {
-            return false;
-        }
-
-        // Verify it's not at target location
-        if (myLocation.equals(target)) {
-            return true;
-        }
-
-        // Determine all the locations that can be viewed by the robot
-        MapLocation[] allLocations = rc.getAllLocationsWithinRadiusSquared(myLocation, rc.getType().visionRadiusSquared);
-        MapLocation closestToTarget = closestLocation(allLocations, myLocation, target);
-
-        // Frontier (nodes that we could be visiting until finding the closestToTarget location)
-        PriorityQueue<Node> frontier = new PriorityQueue<>();
-        Node start = new Node(myLocation, Math.max(Math.abs(myLocation.x - closestToTarget.x), Math.abs(myLocation.y- closestToTarget.y)));
-        frontier.add(start);
-
-        // Came from array stores the shortest and least expensive path given our heuristic
-        int[][][] cameFrom = new int[60][60][2];
-        for (int i = 0; i < 60; i++) {
-            for (int j = 0; j < 60; j++) {
-                cameFrom[i][j][0] = -1;
-                cameFrom[i][j][1] = -1;
-            }
-        }
-
-        // Keeps track of the costs so far made in the path
-        int[][] costSoFar = new int[60][60];
-        for (int[] row : costSoFar) Arrays.fill(row, -1);
-
-        // Setting defaults for the path on location (x, y) & its cost
-        cameFrom[myLocation.x][myLocation.y][0] = -1;
-        cameFrom[myLocation.x][myLocation.y][1] = -1;
-        costSoFar[myLocation.x][myLocation.y] = 0;
-
-        // Iterate until the frontier is completely empty or a path is found
-        while (!frontier.isEmpty()) {
-            Node curr = frontier.poll();
-            // Path is found, break and just flow the head of the path (closestToTarget)
-            // back to start (stop right before)
-            if (curr.location.equals(closestToTarget)) {
-                break;
-            }
-
-            // Iterate through all 8 directions && build the path
-            for (Direction dir : directions) {
-                int currX = curr.location.x, currY = curr.location.y;
-                MapLocation next = new MapLocation(currX, currY).add(dir);
-
-                if (!rc.canSenseLocation(next)) {
-                    continue;
-                }
-
-                if (rc.senseRobotAtLocation(next) != null) {
-                    continue;
-                }
-
-                // + 1 reviews to the graph cost & since they are all adjacent add 1
-                int newCost = costSoFar[currX][currY] + 1;
-                if (costSoFar[next.x][next.y] == -1 || newCost < costSoFar[next.x][next.y]) {
-
-                    // Map costSoFar[next] = newCost
-                    costSoFar[next.x][next.y] = newCost;
-
-                    // Update priority and append it to the frontier
-                    int priority = newCost + Math.max(Math.abs(next.x - currX), Math.abs(next.y - currY));
-                    frontier.add(new Node(next, priority));
-
-                    // Map cameFrom[next] = curr
-                    cameFrom[next.x][next.y][0] = currX;
-                    cameFrom[next.x][next.y][1] = currY;
-                }
-            }
-        }
-
-        if (costSoFar[closestToTarget.x][closestToTarget.y] == -1) {
-            return moveTowards(rc, target);
-        }
-
-        // Find the moveSpot right before the start location by following the path back
-        MapLocation moveSpot = closestToTarget, curr = closestToTarget;
-        while (cameFrom[curr.x][curr.y][0] >= 0 && cameFrom[curr.x][curr.y][1] >= 0) {
-            int parentX = cameFrom[curr.x][curr.y][0];
-            int parentY = cameFrom[curr.x][curr.y][1];
-            moveSpot = new MapLocation(curr.x, curr.y);
-            curr = new MapLocation(parentX, parentY);
-        }
-
-        // Move in that direction
-        Direction dir = myLocation.directionTo(moveSpot);
-        if (rc.canMove(dir)) {
-            rc.move(dir);
-            return true;
-        }
-
-        return false;
+    private double dotProduct(double[] a, double[] b) {
+        return a[0] * b[0] + a[1] * b[1];
     }
 
-    public static void generalExplore(RobotController rc) throws GameActionException {
+    public void generalExplore(RobotController rc) throws GameActionException {
         if (rc.isMovementReady()) {
-            Direction dir = null;
-            int[] nearby = new int[4]; //0-N (up) 1-E (right), 2-S (down), 3-W (left)
-            // +1 for ally robot (to disperse), +1 for opposite direction if enemy robot (to avoid)
-            RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
-            int thisX = rc.getLocation().x;
-            int thisY = rc.getLocation().y;
-            for (RobotInfo robot : nearbyRobots) {
-                int x = robot.location.x;
-                int y = robot.location.y;
-                int diffX = x - thisX; //pos = enemy is N, neg = enemy = S
-                int diffY = y - thisY; //pos = enemy is E, neg = W
-                if (diffX > 0) {
-                    nearby[0] += 1;
-                }
-                if (diffX < 0) {
-                    nearby[2] += 1;
-                }
-                if (diffY > 0) {
-                    nearby[1] += 1;
-                }
-                if (diffY < 0) {
-                    nearby[3] += 1;
+            RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam()); // TODO: Clouds
+            Direction dir = directions[rng.nextInt(8)];
+            double[] vector = new double[]{dir.dx, dir.dx};
+            for (RobotInfo r : robots) {
+                MapLocation loc = r.location;
+                int dx = loc.x - myLocation.x;
+                int dy = loc.y - myLocation.y;
+                double inverse = 1.2 / (dx * dx + dy * dy);
+                vector[0] -= dx * inverse;
+                vector[1] -= dy * inverse;
+            }
+            double max = Double.MIN_VALUE;
+            for (Direction d : directions) {
+                MapLocation target = myLocation.add(d);
+                if (rc.onTheMap(target) && rc.sensePassability(target) && !rc.isLocationOccupied(target)) {
+                    double dot = dotProduct(new double[]{d.dx, d.dy}, vector);
+                    if (dot > max) {
+                        dir = d;
+                        max = dot;
+                    }
                 }
             }
-            boolean N = false;
-            boolean S = false;
-            boolean E = false;
-            boolean W = false;
-            int updown = nearby[0] - nearby[2];
-            int ew = nearby[1] - nearby[3];
-            if (updown > 0) {
-                S = true; //enemies in N
-            }else {
-                N = true;
-            }
-            if (ew > 0) {
-                W = true;
-            } else {
-                E = true;
-            }
-            if (N && E && rc.canMove(Direction.NORTHEAST)) {
-                dir = Direction.NORTHEAST;
-            } else if (N && W && rc.canMove((Direction.NORTHWEST))) {
-                dir = Direction.NORTHWEST;
-            } else if (S && E && rc.canMove((Direction.SOUTHEAST))) {
-                dir = Direction.SOUTHEAST;
-            } else if (S && W && rc.canMove(Direction.SOUTHWEST)) {
-                dir = Direction.SOUTHWEST;
-            } else if (N && rc.canMove(Direction.NORTH)) {
-                dir = Direction.NORTH;
-            } else if (E && rc.canMove(Direction.EAST)) {
-                dir = Direction.EAST;
-            } else if (S && rc.canMove(Direction.SOUTH)) {
-                dir = Direction.SOUTH;
-            } else if (W && rc.canMove(Direction.WEST)) {
-                dir = Direction.WEST;
-            }
-            if (dir != null) {
-                rc.move(dir); //only moves on space
+            if (rc.canMove(dir)) {
+                rc.move(dir);
             }
         }
     }
