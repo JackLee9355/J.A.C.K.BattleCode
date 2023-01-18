@@ -14,6 +14,7 @@ public class AmplifierController extends Controller {
     public static boolean atWell = false;
     public static List<Well> wells;
     public static WellInfo[] nearbyWells;
+    public boolean noWells = false;
 
     public AmplifierController(RobotController rc) {
         super(rc);
@@ -23,12 +24,14 @@ public class AmplifierController extends Controller {
     @Override
     public void run(RobotController rc) throws GameActionException {
         super.run(rc);
-        if(assignedWell == null){
+        if(assignedWell == null) {
             assignToWell(rc);
-        } else {
-            if(atWell == false){
+        }
+        if (noWells){
+            generalExplore(rc);
+        }
+        if(atWell == false && assignedWell != null) {
                 moveToWell(rc);
-            }
         }
     }
 
@@ -50,8 +53,12 @@ public class AmplifierController extends Controller {
                 }
             }
         }
-        assignedWell = assignTo;
-        assignedWellLoc = assignedWell.getMapLocation();
+        if(assignTo == null){
+            noWells = true;
+        } else {
+            assignedWell = assignTo;
+            assignedWellLoc = assignedWell.getMapLocation();
+        }
     }
 
     public void moveToWell(RobotController rc) throws GameActionException {
