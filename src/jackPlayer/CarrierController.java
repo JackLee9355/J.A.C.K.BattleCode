@@ -67,6 +67,11 @@ public class CarrierController extends Controller {
     private void attemptCollect(RobotController rc) throws GameActionException {
         if (rc.canCollectResource(wellLocation, -1)) {
             rc.collectResource(wellLocation, -1);
+
+            if (totalHeld(rc) == 40) {
+                // Could be closer to a different hq now
+                assignHQ(rc);
+            }
         }
     }
 
@@ -138,10 +143,12 @@ public class CarrierController extends Controller {
         super.run(rc);
 
         attemptToPutAnchor(rc);
-        assignHQ(rc);
         if (headquarter == null) {
-            generalExplore(rc);
-            return;
+            assignHQ(rc);
+            if (headquarter == null) {
+                generalExplore(rc);
+                return;
+            }
         }
         if (wellLocation == null) {
             assignWell(rc);
