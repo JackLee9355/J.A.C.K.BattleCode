@@ -11,8 +11,10 @@ import java.util.List;
 public class AmplifierController extends Controller {
     public static Well assignedWell = null;
     public static MapLocation assignedWellLoc = null;
+    public static boolean atWell = false;
     public static List<Well> wells;
     public static WellInfo[] nearbyWells;
+    public boolean noWells = false;
 
     public AmplifierController(RobotController rc) {
         super(rc);
@@ -22,7 +24,15 @@ public class AmplifierController extends Controller {
     @Override
     public void run(RobotController rc) throws GameActionException {
         super.run(rc);
-        generalExplore(rc);
+        if(assignedWell == null) {
+            assignToWell(rc);
+        }
+        if (noWells){
+            generalExplore(rc);
+        }
+        if(atWell == false && assignedWell != null) {
+                moveToWell(rc);
+        }
     }
 
     public void assignToWell(RobotController rc) throws GameActionException {
@@ -43,21 +53,23 @@ public class AmplifierController extends Controller {
                 }
             }
         }
-        assignedWell = assignTo;
-        assignedWellLoc = assignedWell.getMapLocation();
+        if(assignTo == null){
+            noWells = true;
+        } else {
+            assignedWell = assignTo;
+            assignedWellLoc = assignedWell.getMapLocation();
+        }
     }
 
     public void moveToWell(RobotController rc) throws GameActionException {
-        if (assignedWell != null) {
             MapLocation curr = rc.getLocation();
             if (curr.distanceSquaredTo(assignedWellLoc) > 4 && rc.canMove(curr.directionTo(assignedWellLoc))) {
                 rc.move(curr.directionTo(assignedWellLoc));
             } else if (curr.distanceSquaredTo(assignedWellLoc) <= 4) { //arrived at well
-                searchForWells(rc); //see if there are any other nearby wells to add and to get the WellInfo of the assigned well
-
+                atWell = true;
             }
         }
-    }
+
 
     //update the well info
     public static void updateWellInfo(RobotController rc, WellInfo well) throws GameActionException {
