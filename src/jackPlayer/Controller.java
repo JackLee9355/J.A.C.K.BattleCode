@@ -27,7 +27,10 @@ public abstract strictfp class Controller {
             Direction.WEST,
             Direction.NORTHWEST,
     };
-    protected Map<MapLocation, WellInfo> wellCache = new HashMap<>(); // TODO: replace with array (HashMaps are bad)
+  
+    protected boolean[][] exists = new boolean[60][60];
+    protected WellInfo[] wellCache = new WellInfo[3600];
+    protected int end = 0;
 
     public Controller(RobotController rc) {
         mapWidth = rc.getMapWidth();
@@ -99,28 +102,38 @@ public abstract strictfp class Controller {
     }
 
     private void writeWellCache(RobotController rc) throws GameActionException {
-        Set<MapLocation> storedWells = new HashSet<>();
+        if (end == 0)
+            return;
+
+        boolean[][] managed = new boolean[60][60];
         List<Well> wells = Communications.getWells(rc);
         if (wells == null)
             return;
 
         for (Well well : wells) {
-            storedWells.add(well.getMapLocation());
+            managed[well.getMapLocation().x][well.getMapLocation().y] = true;
         }
 
-        for (MapLocation wellLoc : wellCache.keySet()) {
-            if (!storedWells.contains(wellLoc)) {
-                manageWell(rc, wellCache.get(wellLoc));
+        for (int i = 0; i < end; i++) {
+            WellInfo well = wellCache[i];
+            if (!managed[well.getMapLocation().x][well.getMapLocation().y]) {
+                manageWell(rc, well);
                 // System.out.println("Managing new well at location: " + wellLoc.x + ", " + wellLoc.y);
                 break; // We can't add more than one anyway
             }
         }
-        // wellCache.clear(); Can be added for performance later if we didn't break out of the loop
+        end = 0;
+        wellCache = new WellInfo[3600];
     }
 
     private void cacheNewWells(RobotController rc) throws GameActionException {
         for (WellInfo wellInfo : rc.senseNearbyWells()) {
-            wellCache.put(wellInfo.getMapLocation(), wellInfo);
+            int x = wellInfo.getMapLocation().x;
+            int y = wellInfo.getMapLocation().y;
+            if (!exists[x][y]) {
+                wellCache[end++] = wellInfo;
+                exists[x][y] = true;
+            }
         }
     }
 

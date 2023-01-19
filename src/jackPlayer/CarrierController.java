@@ -67,6 +67,11 @@ public class CarrierController extends Controller {
     private void attemptCollect(RobotController rc) throws GameActionException {
         if (rc.canCollectResource(wellLocation, -1)) {
             rc.collectResource(wellLocation, -1);
+
+            if (totalHeld(rc) == 40) {
+                // Could be closer to a different hq now
+                assignHQ(rc);
+            }
         }
     }
 
