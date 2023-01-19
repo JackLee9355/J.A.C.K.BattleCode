@@ -24,14 +24,14 @@ public class AmplifierController extends Controller {
     @Override
     public void run(RobotController rc) throws GameActionException {
         super.run(rc);
-        if(assignedWell == null) {
+        if (assignedWell == null) {
             assignToWell(rc);
         }
-        if (noWells){
+        if (noWells) {
             generalExplore(rc);
         }
-        if(atWell == false && assignedWell != null) {
-                moveToWell(rc);
+        if (atWell == false && assignedWell != null) {
+            moveToWell(rc);
         }
     }
 
@@ -53,7 +53,7 @@ public class AmplifierController extends Controller {
                 }
             }
         }
-        if(assignTo == null){
+        if (assignTo == null) {
             noWells = true;
         } else {
             assignedWell = assignTo;
@@ -62,21 +62,14 @@ public class AmplifierController extends Controller {
     }
 
     public void moveToWell(RobotController rc) throws GameActionException {
-            MapLocation curr = rc.getLocation();
-            if (curr.distanceSquaredTo(assignedWellLoc) > 4 && rc.canMove(curr.directionTo(assignedWellLoc))) {
-                rc.move(curr.directionTo(assignedWellLoc));
-            } else if (curr.distanceSquaredTo(assignedWellLoc) <= 4) { //arrived at well
-                atWell = true;
-            }
+        MapLocation curr = rc.getLocation();
+        if (curr.distanceSquaredTo(assignedWellLoc) > 4 && rc.canMove(curr.directionTo(assignedWellLoc))) {
+            rc.move(curr.directionTo(assignedWellLoc));
+        } else if (curr.distanceSquaredTo(assignedWellLoc) <= 4) { //arrived at well
+            atWell = true;
         }
-
-
-    //update the well info
-    public static void updateWellInfo(RobotController rc, WellInfo well) throws GameActionException {
-        //manageWell and update who it is assigned to
-        Controller.manageWell(rc, well);
-
     }
+
 
     public static void searchForWells(RobotController rc) throws GameActionException {
         WellInfo[] temp = rc.senseNearbyWells();
@@ -95,8 +88,6 @@ public class AmplifierController extends Controller {
                     }
                 }
                 if (wellToUpdate != null) {
-                    //manageWell
-                    updateWellInfo(rc, wellToUpdate);
                     if (assignedWell == null) {
                         assignedWell = well;
                         assignedWellLoc = well.getMapLocation();

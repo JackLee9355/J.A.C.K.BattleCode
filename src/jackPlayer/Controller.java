@@ -5,6 +5,7 @@ import java.util.*;
 import battlecode.common.*;
 import jackPlayer.Communications.Communications;
 import jackPlayer.Communications.EntityType;
+import jackPlayer.Communications.Headquarter;
 import jackPlayer.Communications.Well;
 import jackPlayer.Pathing.Pathing;
 import jackPlayer.Pathing.PathingAStar;
@@ -16,7 +17,7 @@ public abstract strictfp class Controller {
     protected MapLocation myLocation;
     protected Pathing pathing;
     protected final Random rng = new Random(6147);
-    protected final PathingAStar pathingAStar;
+    //    protected final PathingAStar pathingAStar;
     protected final Direction[] directions = {
             Direction.NORTH,
             Direction.NORTHEAST,
@@ -27,15 +28,16 @@ public abstract strictfp class Controller {
             Direction.WEST,
             Direction.NORTHWEST,
     };
-  
-    protected boolean[][] exists = new boolean[60][60];
-    protected WellInfo[] wellCache = new WellInfo[3600];
-    protected int end = 0;
+
+    protected static final boolean[][] exists = new boolean[60][60];
+    protected static final WellInfo[] wellCache = new WellInfo[360];
+    protected static final boolean[] managed = new boolean[360];
+    protected static int end = 0;
 
     public Controller(RobotController rc) {
         mapWidth = rc.getMapWidth();
         mapHeight = rc.getMapHeight();
-        pathingAStar = new PathingAStar(rc);
+//        pathingAStar = new PathingAStar(rc);
     }
 
     public void run(RobotController rc) throws GameActionException {
@@ -45,7 +47,7 @@ public abstract strictfp class Controller {
 //        if (turnCount % 5 == 0) {
 //            pathingAStar.updateMap(rc, myLocation);
 //        }
-        if (turnCount % 5 == 1 && rc.canWriteSharedArray(0, 0)) {
+        if (rc.canWriteSharedArray(0, 0)) {
             writeWellCache(rc);
         }
     }
@@ -58,23 +60,51 @@ public abstract strictfp class Controller {
         return new MapLocation(centerX + dx, centerY + dy);
     }
 
-    protected static void manageWell(RobotController rc, WellInfo wellInfo) throws GameActionException {
-        List<Well> wells;
-        if ((wells = Communications.getWells(rc)) == null) {
-            return;
+    protected List<MapLocation> approxEnemyBase(RobotController rc) throws GameActionException {
+        List<Headquarter> headquarters = Communications.getHeadQuarters(rc);
+        if (headquarters == null) {
+            return null;
         }
+        List<MapLocation> rotated = new ArrayList<>();
+        for (Headquarter h : headquarters) {
+            rotated.add(rotate(h.getMapLocation()));
+        }
+        return rotated;
+    }
+
+    protected static boolean manageWell(RobotController rc, WellInfo wellInfo, List<Well> wells) throws GameActionException {
         int index = -1;
-        for (int i = 0; i < wells.size(); i++) {
-            Well w = wells.get(i);
-            if (w.getMapLocation().equals(wellInfo.getMapLocation())) {
-                index = i;
-                break;
+        if (wells != null) {
+            for (int i = 0; i < wells.size(); i++) {
+                Well w = wells.get(i);
+                if (w.getMapLocation().equals(wellInfo.getMapLocation())) {
+                    index = i;
+                    break;
+                }
             }
         }
         if (index == -1) {
-            Communications.input(rc, EntityType.WELL, wellInfo.getMapLocation().x, wellInfo.getMapLocation().y);
+            EntityType type;
+            switch (wellInfo.getResourceType()) {
+                case ADAMANTIUM:
+                    type = EntityType.AD_WELL;
+                    break;
+                case MANA:
+                    type = EntityType.MN_WELL;
+                    break;
+                case ELIXIR:
+                    type = EntityType.EX_WELL;
+                    break;
+                default:
+                    type = null;
+            }
+            if (type != null) {
+                Communications.input(rc, type, wellInfo.getMapLocation().x, wellInfo.getMapLocation().y);
+            }
+            return false;
         } else {
             // TODO: update info for well
+            return true;
         }
     }
 
@@ -86,7 +116,7 @@ public abstract strictfp class Controller {
 
         List<Well> shortWells = new ArrayList<>();
         for (Well well : wells) {
-            if (well.getWorkerCount() < 10 /* || well.getPressure() < 5 */) {
+            if (well.getWorkerCount() < 8 /* || well.getPressure() < 5 */) {
                 shortWells.add(well);
             }
         }
@@ -102,28 +132,23 @@ public abstract strictfp class Controller {
     }
 
     private void writeWellCache(RobotController rc) throws GameActionException {
-        if (end == 0)
+        if (end == 0) {
             return;
-
-        boolean[][] managed = new boolean[60][60];
-        List<Well> wells = Communications.getWells(rc);
-        if (wells == null)
-            return;
-
-        for (Well well : wells) {
-            managed[well.getMapLocation().x][well.getMapLocation().y] = true;
         }
+
+        List<Well> wells = Communications.getWells(rc);
 
         for (int i = 0; i < end; i++) {
-            WellInfo well = wellCache[i];
-            if (!managed[well.getMapLocation().x][well.getMapLocation().y]) {
-                manageWell(rc, well);
-                // System.out.println("Managing new well at location: " + wellLoc.x + ", " + wellLoc.y);
-                break; // We can't add more than one anyway
+            if (managed[i]) {
+                continue;
+            }
+//            System.out.println("Managing new well at location: " + wellCache[i].getMapLocation().x + ", " + wellCache[i].getMapLocation().y);
+            if (manageWell(rc, wellCache[i], wells)) {
+                managed[i] = true;
+            } else {
+                break;
             }
         }
-        end = 0;
-        wellCache = new WellInfo[3600];
     }
 
     private void cacheNewWells(RobotController rc) throws GameActionException {

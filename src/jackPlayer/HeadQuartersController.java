@@ -13,11 +13,16 @@ public class HeadQuartersController extends Controller {
     int carriersConstructed;
     int launchersConstructed;
     int amplifiersConstructed;
-    boolean hasBuiltAnchor;
+    int anchorsBuilt;
+    MapLocation focusTarget;
 
     public HeadQuartersController(RobotController rc) {
         super(rc);
-        hasBuiltAnchor = false;
+        anchorsBuilt = 0;
+        focusTarget = null;
+        carriersConstructed = 0;
+        launchersConstructed = 0;
+        amplifiersConstructed = 0;
         try {
             List<Headquarter> headquarters = Communications.getHeadQuarters(rc);
             if (headquarters == null) {
@@ -33,9 +38,9 @@ public class HeadQuartersController extends Controller {
         }
     }
 
-    private void constructLauncher(RobotController rc) throws GameActionException {
+    private boolean constructLauncher(RobotController rc) throws GameActionException {
         if (rc.getResourceAmount(ResourceType.MANA) < 60)
-            return;
+            return false;
 
         boolean built = false;
         for (MapLocation loc : adjacentSquares(rc)) {
@@ -45,17 +50,19 @@ public class HeadQuartersController extends Controller {
                 break;
             }
         }
-        if (built)
+        if (built) {
             launchersConstructed++;
+        }
+        return built;
     }
 
-    private void constructCarrier(RobotController rc) throws GameActionException {
+    private boolean constructCarrier(RobotController rc) throws GameActionException {
         if (rc.getResourceAmount(ResourceType.ADAMANTIUM) < 50)
-            return;
+            return false;
 
         List<Well> wells = getShortStaffedWells(rc);
         if (wells == null || wells.size() == 0)
-            return;
+            return false;
 
         boolean built = false;
         for (MapLocation loc : adjacentSquares(rc)) {
@@ -65,8 +72,10 @@ public class HeadQuartersController extends Controller {
                 break;
             }
         }
-        if (built)
+        if (built) {
             carriersConstructed++;
+        }
+        return built;
     }
 
     private void constructAmplifier(RobotController rc) throws GameActionException {
@@ -82,18 +91,16 @@ public class HeadQuartersController extends Controller {
             }
         }
         if (built) {
-            carriersConstructed = 0;
-            launchersConstructed = 0;
             amplifiersConstructed++;
         }
     }
 
     private void constructUnits(RobotController rc) throws GameActionException {
-        if ((carriersConstructed + launchersConstructed + 1) % 20 == 0) {
-            constructAmplifier(rc);
-        } else {
-            constructLauncher(rc);
-            constructCarrier(rc);
+        boolean built = true;
+        while (rc.isActionReady() && built) {
+            built = false;
+            built |= constructLauncher(rc);
+            built |= constructCarrier(rc);
         }
     }
 
@@ -103,22 +110,27 @@ public class HeadQuartersController extends Controller {
         if (turnCount < 3) {
             Communications.addFriendlyHeadquarters(rc, myLocation.x, myLocation.y, headQuartersIndex);
         }
-        WellInfo[] wellInfos = rc.senseNearbyWells();
-        for (WellInfo wellInfo : wellInfos) {
-            manageWell(rc, wellInfo);
-        }
         if (headQuartersIndex == 0) {
             Communications.processInput(rc);
             if (turnCount > 10) {
                 Communications.iteratePage(rc);
             }
-            List<Well> wells = Communications.getWells(rc);
-            if ((turnCount / 50) % 2 == 0 && wells != null && wells.size() > 0) {
-                Well w = wells.get((turnCount / 100) % wells.size());
-                MapLocation target = rotate(w.getMapLocation());
-                Communications.updateControl(rc, 1, target.x, target.y);
-            } else {
-                Communications.updateControl(rc, 0, mapWidth / 2, mapHeight / 2);
+            if (turnCount > 100) {
+                if ((turnCount / 50) % 2 == 0) {
+                    if (focusTarget == null) {
+                        List<MapLocation> targets = approxEnemyBase(rc);
+                        if (targets != null) {
+                            focusTarget = targets.get((turnCount / 100) % targets.size());
+                        }
+                    } else {
+                        rc.setIndicatorString("Focus set to: (" + focusTarget.x + ", " + focusTarget.y + ")");
+                        Communications.updateControl(rc, 1, focusTarget.x, focusTarget.y);
+                    }
+                } else {
+                    focusTarget = null;
+                    rc.setIndicatorString("Focus is null");
+                    Communications.updateControl(rc, 0, 0, 0);
+                }
             }
 //            if (wells != null) {
 //                StringBuilder sb = new StringBuilder();
@@ -130,10 +142,10 @@ public class HeadQuartersController extends Controller {
 //            }
         }
 
-        if (turnCount >= 1000 && !hasBuiltAnchor) {
+        if (turnCount >= 400 && anchorsBuilt < 2) {
             if (rc.canBuildAnchor(Anchor.STANDARD)) {
                 rc.buildAnchor(Anchor.STANDARD);
-                hasBuiltAnchor = true;
+                anchorsBuilt++;
             }
         } else {
             constructUnits(rc);

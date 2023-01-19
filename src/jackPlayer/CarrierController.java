@@ -159,6 +159,7 @@ public class CarrierController extends Controller {
                 }
                 attemptCollect(rc);
             }
+            assignHQ(rc);
         } else {
             if (headquarter == null) {
                 assignHQ(rc);
@@ -173,6 +174,7 @@ public class CarrierController extends Controller {
                 }
                 attemptDeposit(rc);
             }
+            assignWell(rc);
         }
     }
 

@@ -4,6 +4,9 @@ import battlecode.common.*;
 import jackPlayer.Communications.*;
 import jackPlayer.Pathing.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class LauncherController extends Controller {
 
     private final int WEIGHT_BOOSTER = 10;
@@ -17,6 +20,7 @@ public class LauncherController extends Controller {
     private final Team myTeam;
     private final Team enemyTeam;
     private RobotInfo[] enemies;
+    boolean visitedApprox;
 
     public LauncherController(RobotController rc) {
         super(rc);
@@ -24,6 +28,7 @@ public class LauncherController extends Controller {
         myTeam = rc.getTeam();
         enemyTeam = myTeam.opponent();
         pathing = new RobotPathing(rc);
+        visitedApprox = false;
     }
 
     private MapLocation bestEnemyToAttack(RobotController rc) throws GameActionException {
@@ -86,8 +91,6 @@ public class LauncherController extends Controller {
     }
 
     private boolean attack(RobotController rc, MapLocation enemyLocation) throws GameActionException {
-        rc.setIndicatorString("Attacking");
-
         if (rc.isActionReady() && enemyLocation != null) {
             if (rc.canAttack(enemyLocation)) {
                 rc.attack(enemyLocation);
@@ -95,6 +98,39 @@ public class LauncherController extends Controller {
             }
         }
         return false;
+    }
+
+    private boolean microMove(RobotController rc) throws GameActionException {
+        Direction bestMove = null;
+        int bestDistance = Integer.MIN_VALUE;
+        int bestCount = Integer.MAX_VALUE;
+        for (Direction d : directions) {
+            if (!rc.canMove(d)) {
+                continue;
+            }
+            MapLocation loc = myLocation.add(d);
+            int count = 0;
+            int minDistance = Integer.MAX_VALUE;
+            for (RobotInfo e : enemies) {
+                int dist = e.getLocation().distanceSquaredTo(loc);
+                minDistance = Math.min(minDistance, dist);
+                if (dist <= type.actionRadiusSquared) {
+                    count++;
+                }
+            }
+            if (count > 0 && (count < bestCount || minDistance > bestDistance)) {
+                bestMove = d;
+                bestDistance = minDistance;
+                bestCount = count;
+            }
+        }
+        if (bestMove != null) {
+            rc.setIndicatorString("Micro!");
+            rc.move(bestMove);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
@@ -106,43 +142,67 @@ public class LauncherController extends Controller {
         MapLocation enemyLocation = bestEnemyToAttack(rc);
         alreadyAttacked = attack(rc, enemyLocation);
 
+        // Micro move if enemies around
+        if (enemies.length > 1) {
+            alreadyMoved = microMove(rc);
+        }
+
         // Focus is set
-        if (Communications.getCoordination(rc) > 0) {
+        if (!alreadyMoved && Communications.getCoordination(rc) > 0) {
             MapLocation target = new MapLocation(Communications.getFocusX(rc), Communications.getFocusY(rc));
 
             // If not in focus radius
             if (!myLocation.isWithinDistanceSquared(target, type.visionRadiusSquared)) {
+                rc.setIndicatorString("Heading to focus: (" + target.x + ", " + target.y + ")");
                 pathing.move(target);
                 alreadyMoved = true;
-
-                // Find new best enemy to attack and try now
-                if (!alreadyAttacked) {
-                    enemyLocation = bestEnemyToAttack(rc);
-                    alreadyAttacked = attack(rc, enemyLocation);
-                }
             }
+        }
+
+        if (!alreadyMoved && enemies.length > 0) {
+            alreadyMoved = microMove(rc);
         }
 
         // Chase enemy if didn't move earlier
         if (!alreadyMoved && enemyLocation != null) {
+            rc.setIndicatorString("Chasing!");
             pathing.move(enemyLocation);
             alreadyMoved = true;
+        }
 
-            // If enemy is now in attack radius, try an attack
-            if (!alreadyAttacked) {
-                alreadyAttacked = attack(rc, enemyLocation);
+        // Move to guess of where the enemy is
+        List<MapLocation> enemyGuesses = approxEnemyBase(rc);
+        if (!visitedApprox && !alreadyMoved && enemyGuesses != null && enemyGuesses.size() > 0) {
+            MapLocation min = null;
+            int dist = Integer.MAX_VALUE;
+            for (MapLocation e : enemyGuesses) {
+                int d = myLocation.distanceSquaredTo(e);
+                if (d < dist) {
+                    dist = d;
+                    min = e;
+                }
+            }
+            if (dist < type.visionRadiusSquared) {
+                visitedApprox = true;
+            }
+            if (min != null) {
+                rc.setIndicatorString("Heading to guess: (" + min.x + ", " + min.y + ")");
+                pathing.move(min);
+                alreadyMoved = true;
             }
         }
 
         // No enemies in vision, explore
         if (!alreadyMoved) {
+            rc.setIndicatorString("Exploring");
             generalExplore(rc);
+            alreadyMoved = true;
+        }
 
-            // Find new best enemy to attack and try now
-            if (!alreadyAttacked) {
-                enemyLocation = bestEnemyToAttack(rc);
-                attack(rc, enemyLocation);
-            }
+        // Find new best enemy to attack and try now
+        if (!alreadyAttacked) {
+            enemyLocation = bestEnemyToAttack(rc);
+            alreadyAttacked = attack(rc, enemyLocation);
         }
     }
 }
