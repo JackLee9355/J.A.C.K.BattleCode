@@ -24,15 +24,7 @@ public class AmplifierController extends Controller {
     @Override
     public void run(RobotController rc) throws GameActionException {
         super.run(rc);
-        if (assignedWell == null) {
-            assignToWell(rc);
-        }
-        if (noWells) {
-            generalExplore(rc);
-        }
-        if (atWell == false && assignedWell != null) {
-            moveToWell(rc);
-        }
+        generalExplore(rc);
     }
 
     public void assignToWell(RobotController rc) throws GameActionException {

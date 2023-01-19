@@ -97,6 +97,9 @@ public class HeadQuartersController extends Controller {
 
     private void constructUnits(RobotController rc) throws GameActionException {
         boolean built = true;
+        if (turnCount % 10 == 5) {
+            constructAmplifier(rc);
+        }
         while (rc.isActionReady() && built) {
             built = false;
             built |= constructLauncher(rc);

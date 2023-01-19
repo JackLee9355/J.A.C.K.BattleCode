@@ -15,12 +15,13 @@ public class LauncherController extends Controller {
     private final int WEIGHT_AMPLIFIER = 25;
     private final int WEIGHT_CARRIER = 25;
     private final int WEIGHT_HEADQUARTERS = 30;
-    private final int AVERAGE_MAX_HEALTH = 20;
+    private final int AVERAGE_MAX_HEALTH = 200;
     private final RobotType type;
     private final Team myTeam;
     private final Team enemyTeam;
     private RobotInfo[] enemies;
     boolean visitedApprox;
+    MapLocation guessLoc;
 
     public LauncherController(RobotController rc) {
         super(rc);
@@ -29,6 +30,7 @@ public class LauncherController extends Controller {
         enemyTeam = myTeam.opponent();
         pathing = new RobotPathing(rc);
         visitedApprox = false;
+        guessLoc = null;
     }
 
     private MapLocation bestEnemyToAttack(RobotController rc) throws GameActionException {
@@ -170,9 +172,9 @@ public class LauncherController extends Controller {
             alreadyMoved = true;
         }
 
-        // Move to guess of where the enemy is
+        // Move to a guess of where the enemy is
         List<MapLocation> enemyGuesses = approxEnemyBase(rc);
-        if (!visitedApprox && !alreadyMoved && enemyGuesses != null && enemyGuesses.size() > 0) {
+        if (!visitedApprox && guessLoc == null && enemyGuesses != null) {
             MapLocation min = null;
             int dist = Integer.MAX_VALUE;
             for (MapLocation e : enemyGuesses) {
@@ -185,10 +187,16 @@ public class LauncherController extends Controller {
             if (dist < type.visionRadiusSquared) {
                 visitedApprox = true;
             }
-            if (min != null) {
-                rc.setIndicatorString("Heading to guess: (" + min.x + ", " + min.y + ")");
-                pathing.move(min);
+            guessLoc = min;
+        }
+        if (!visitedApprox && !alreadyMoved) {
+            if (guessLoc != null) {
+                rc.setIndicatorString("Heading to guess: (" + guessLoc.x + ", " + guessLoc.y + ")");
+                pathing.move(guessLoc);
                 alreadyMoved = true;
+                if (myLocation.distanceSquaredTo(guessLoc) < type.actionRadiusSquared) {
+                    visitedApprox = true;
+                }
             }
         }
 

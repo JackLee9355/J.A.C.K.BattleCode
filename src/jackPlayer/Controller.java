@@ -29,15 +29,35 @@ public abstract strictfp class Controller {
             Direction.NORTHWEST,
     };
 
-    protected static final boolean[][] exists = new boolean[60][60];
-    protected static final WellInfo[] wellCache = new WellInfo[360];
-    protected static final boolean[] managed = new boolean[360];
-    protected static int end = 0;
+    protected static final boolean[][] managed = new boolean[60][60];
+    protected static final LinkedList<WellInfo> wellCache = new LinkedList<>();
+
+    private static final char[][] BM_MESSAGE = new char[][]{
+            "#### #### #### ####".toCharArray(),
+            "#    #    #       #".toCharArray(),
+            "#    #    #      # ".toCharArray(),
+            "# ## # ## ###    # ".toCharArray(),
+            "#  # #  # #     #  ".toCharArray(),
+            "#  # #  # #     #  ".toCharArray(),
+            "#### #### #### ####".toCharArray()
+    };
+
+    private static final int BM_HEIGHT = BM_MESSAGE.length;
+    private static final int BM_WIDTH = BM_MESSAGE[0].length;
 
     public Controller(RobotController rc) {
         mapWidth = rc.getMapWidth();
         mapHeight = rc.getMapHeight();
 //        pathingAStar = new PathingAStar(rc);
+    }
+
+    private void writeBM(RobotController rc) {
+        int bx = rng.nextInt(BM_WIDTH);
+        int by = rng.nextInt(BM_HEIGHT);
+        int x = bx;
+        int y = BM_HEIGHT - by - 1;
+        System.out.println("Sent BM at " + x + ", " + y);
+        rc.setIndicatorDot(new MapLocation(x, y), 122, 0, 25);
     }
 
     public void run(RobotController rc) throws GameActionException {
@@ -50,6 +70,7 @@ public abstract strictfp class Controller {
         if (rc.canWriteSharedArray(0, 0)) {
             writeWellCache(rc);
         }
+//        writeBM(rc);
     }
 
     protected MapLocation rotate(MapLocation point) {
@@ -132,19 +153,16 @@ public abstract strictfp class Controller {
     }
 
     private void writeWellCache(RobotController rc) throws GameActionException {
-        if (end == 0) {
+        if (wellCache.size() == 0) {
             return;
         }
-
         List<Well> wells = Communications.getWells(rc);
-
-        for (int i = 0; i < end; i++) {
-            if (managed[i]) {
-                continue;
-            }
-//            System.out.println("Managing new well at location: " + wellCache[i].getMapLocation().x + ", " + wellCache[i].getMapLocation().y);
-            if (manageWell(rc, wellCache[i], wells)) {
-                managed[i] = true;
+        Iterator<WellInfo> iterator = wellCache.iterator();
+        while (iterator.hasNext()) {
+            WellInfo wellInfo = iterator.next();
+            if (manageWell(rc, wellInfo, wells)) {
+                managed[wellInfo.getMapLocation().x][wellInfo.getMapLocation().y] = true;
+                iterator.remove();
             } else {
                 break;
             }
@@ -155,9 +173,9 @@ public abstract strictfp class Controller {
         for (WellInfo wellInfo : rc.senseNearbyWells()) {
             int x = wellInfo.getMapLocation().x;
             int y = wellInfo.getMapLocation().y;
-            if (!exists[x][y]) {
-                wellCache[end++] = wellInfo;
-                exists[x][y] = true;
+            if (!managed[x][y]) {
+                wellCache.add(wellInfo);
+                managed[x][y] = true;
             }
         }
     }
