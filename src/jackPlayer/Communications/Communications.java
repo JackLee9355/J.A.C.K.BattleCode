@@ -27,8 +27,8 @@ public class Communications {
         return (type << PackedMask.INPUT_TYPE.shift) | (x << PackedMask.INPUT_X.shift) | (y << PackedMask.INPUT_Y.shift);
     }
 
-    private static int packWellPosition(int x, int y) {
-        return (x << PackedMask.WELL_X.shift) | (y << PackedMask.WELL_Y.shift);
+    private static int packWellPosition(int t, int x, int y) {
+        return (t << PackedMask.WELL_TYPE.shift) | (x << PackedMask.WELL_X.shift) | (y << PackedMask.WELL_Y.shift);
     }
 
     private static int packWellStatus(int workerCount, int pressure) {
@@ -60,23 +60,27 @@ public class Communications {
         }
     }
 
-    private static EntityType intToEntityType(int value) {
+    public static EntityType intToEntityType(int value) {
         switch (value) {
             case 0:
                 return EntityType.ANCHOR;
             case 1:
-                return EntityType.WELL;
+                return EntityType.AD_WELL;
             case 2:
+                return EntityType.MN_WELL;
+            case 3:
+                return EntityType.EX_WELL;
+            case 4:
                 return EntityType.HEADQUARTER;
             default:
                 return null;
         }
     }
 
-    private static boolean addWell(RobotController rc, int x, int y) throws GameActionException {
+    private static boolean addWell(RobotController rc, int t, int x, int y) throws GameActionException {
         for (int i = PageLocation.WELLS.index; i < PageLocation.WELLS.end; i += PageLocation.WELLS.size) {
             if (pages[PageLocation.WELLS.page][i] == NULL_INDICATOR) {
-                pages[PageLocation.WELLS.page][i] = packWellPosition(x, y);
+                pages[PageLocation.WELLS.page][i] = packWellPosition(t, x, y);
                 pages[PageLocation.WELLS.page][i + 1] = 0;
                 if (getPage(rc) == PageLocation.WELLS.page) {
                     rc.writeSharedArray(i, pages[PageLocation.WELLS.page][i]);
@@ -159,8 +163,10 @@ public class Communications {
                 case ANCHOR:
                     added = addAnchor(x, y);
                     break;
-                case WELL:
-                    added = addWell(rc, x, y);
+                case AD_WELL:
+                case MN_WELL:
+                case EX_WELL:
+                    added = addWell(rc, type.id, x, y);
                     break;
                 case HEADQUARTER:
                     added = addEnemyBase(x, y);
@@ -168,9 +174,6 @@ public class Communications {
             }
         }
         rc.writeSharedArray(PageLocation.INPUT.index, NULL_INDICATOR);
-        if (type == EntityType.WELL && !added) {
-            // System.out.println("Could not add well! (List full?)");
-        }
     }
 
     public static List<Headquarter> getHeadQuarters(RobotController rc) throws GameActionException {
