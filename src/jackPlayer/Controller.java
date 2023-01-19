@@ -7,6 +7,7 @@ import jackPlayer.Communications.Communications;
 import jackPlayer.Communications.EntityType;
 import jackPlayer.Communications.Well;
 import jackPlayer.Pathing.Pathing;
+import jackPlayer.Pathing.PathingAStar;
 
 public abstract strictfp class Controller {
     protected int turnCount = 0;
@@ -15,12 +16,7 @@ public abstract strictfp class Controller {
     protected MapLocation myLocation;
     protected Pathing pathing;
     protected final Random rng = new Random(6147);
-    private final int[][] map; // [x][y]
-    private final int[][] DIRS = new int[][]{
-            {0, 1}, {1, 0}, {1, 1},
-            {0, -1}, {-1, 0}, {-1, -1},
-            {1, -1}, {-1, 1}
-    };
+    protected final PathingAStar pathingAStar;
     protected final Direction[] directions = {
             Direction.NORTH,
             Direction.NORTHEAST,
@@ -31,7 +27,7 @@ public abstract strictfp class Controller {
             Direction.WEST,
             Direction.NORTHWEST,
     };
-
+  
     protected boolean[][] exists = new boolean[60][60];
     protected WellInfo[] wellCache = new WellInfo[3600];
     protected int end = 0;
@@ -39,14 +35,17 @@ public abstract strictfp class Controller {
     public Controller(RobotController rc) {
         mapWidth = rc.getMapWidth();
         mapHeight = rc.getMapHeight();
-        map = new int[mapWidth][mapHeight];
+        pathingAStar = new PathingAStar(rc);
     }
 
     public void run(RobotController rc) throws GameActionException {
         turnCount++;
         myLocation = rc.getLocation();
         cacheNewWells(rc);
-        if (turnCount > 1 && rc.canWriteSharedArray(0, 0)) { // Worried about weird behavior on master hq
+//        if (turnCount % 5 == 0) {
+//            pathingAStar.updateMap(rc, myLocation);
+//        }
+        if (turnCount % 5 == 1 && rc.canWriteSharedArray(0, 0)) {
             writeWellCache(rc);
         }
     }
@@ -87,7 +86,7 @@ public abstract strictfp class Controller {
 
         List<Well> shortWells = new ArrayList<>();
         for (Well well : wells) {
-            if (well.getWorkerCount() < 10 /* || well.getPressure() < 5 */ ) {
+            if (well.getWorkerCount() < 10 /* || well.getPressure() < 5 */) {
                 shortWells.add(well);
             }
         }
