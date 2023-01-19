@@ -19,7 +19,7 @@ public abstract class Pathing {
 
     // Reset tracker if new target has been specified else continue pathing with current tracker
     private void update(MapLocation target) {
-        if (currentTarget == null || !target.equals(currentTarget)) {
+        if (!target.equals(currentTarget)) {
             tracker.reset();
         }
         currentTarget = target;
