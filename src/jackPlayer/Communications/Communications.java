@@ -209,6 +209,8 @@ public class Communications {
             int y = unpack(packedLoc, PackedMask.WELL_Y);
             int packedStatus = rc.readSharedArray(i + 1);
             int workerCount = unpack(packedStatus, PackedMask.WELL_WORKER_COUNT);
+            if (x == 11 && y == 8 && rc.getType() == RobotType.HEADQUARTERS)
+                System.out.println(x + " " + y + " " + workerCount);
             //System.out.println("This wells count is " + workerCount);
             int pressure = unpack(packedStatus, PackedMask.WELL_PRESSURE);
 
@@ -217,22 +219,31 @@ public class Communications {
         return wells;
     }
 
-    public static void incrementWellWorkers(RobotController rc, Well well) throws GameActionException {
+    public static boolean incrementWellWorkers(RobotController rc, Well well) throws GameActionException {
         int countIndex = well.getWellIndex() + 1;
         if (getPage(rc) != PageLocation.WELLS.page) {
             // System.out.println("Trying to increment well on wrong page");
-            return;
+            return false;
         }
 
         if (!rc.canWriteSharedArray(countIndex, 0)) {
             // System.out.println("Can't write to shared array while incrementing well workers.");
-            return;
+            return false;
         }
 
         int newCount = well.getWorkerCount() < 15 ? well.getWorkerCount() + 1 : 15;
         // new RuntimeException().printStackTrace();
         // System.out.println("x " + well.getMapLocation().x + " y " + well.getMapLocation().y + " new Count " + newCount + " old " + well.getWorkerCount() + " turn " + rc.getRoundNum() + " team " + rc.getTeam().toString() + " robot x " + rc.getLocation().x + " robot y " + rc.getLocation().y);
         rc.writeSharedArray(countIndex, packWellStatus(newCount, well.getPressure()));
+        return true;
+    }
+
+    public static void resetAllWellWorkers(RobotController rc) throws GameActionException {
+        for (int i = PageLocation.WELLS.index; i < PageLocation.WELLS.end; i += PageLocation.WELLS.size) {
+            int packedStatus = rc.readSharedArray(i + 1);
+            int pressure = unpack(packedStatus, PackedMask.WELL_PRESSURE);
+            rc.writeSharedArray(i + 1, packWellStatus(0, pressure));
+        }
     }
 
     public static int getCoordination(RobotController rc) throws GameActionException {

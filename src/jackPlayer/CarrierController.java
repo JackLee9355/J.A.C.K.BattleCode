@@ -12,8 +12,10 @@ import java.util.*;
 public class CarrierController extends Controller {
 
     private MapLocation headquarter;
+    private Well well;
     private MapLocation wellLocation;
     private ResourceType wellType;
+    private boolean hasReported;
 
     public CarrierController(RobotController rc) throws GameActionException {
         super(rc);
@@ -34,6 +36,7 @@ public class CarrierController extends Controller {
             if (Communications.getPage(rc) != PageLocation.WELLS.page)
                 break;
 
+            this.well = well;
             wellLocation = well.getMapLocation();
             wellType = well.getType();
             Communications.incrementWellWorkers(rc, well);
@@ -141,6 +144,13 @@ public class CarrierController extends Controller {
     @Override
     public void run(RobotController rc) throws GameActionException {
         super.run(rc);
+        if (rc.getRoundNum() % ATTENDANCE_CYCLE == 0)
+            hasReported = false;
+        if (!hasReported &&
+                well != null &&
+                rc.getRoundNum() % ATTENDANCE_CYCLE > PageLocation.NUM_PAGES - 1 && // Gives HQ time to reset the page.
+                Communications.incrementWellWorkers(rc, well))
+            hasReported = true;
 
         attemptToPutAnchor(rc);
 
