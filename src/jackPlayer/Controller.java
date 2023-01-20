@@ -94,6 +94,9 @@ public abstract strictfp class Controller {
     }
 
     protected static boolean manageWell(RobotController rc, WellInfo wellInfo, List<Well> wells) throws GameActionException {
+        if (wells == null)
+            return false;
+
         int index = -1;
         if (wells != null) {
             for (int i = 0; i < wells.size(); i++) {
@@ -122,11 +125,10 @@ public abstract strictfp class Controller {
             if (type != null) {
                 Communications.input(rc, type, wellInfo.getMapLocation().x, wellInfo.getMapLocation().y);
             }
-            return false;
         } else {
             // TODO: update info for well
-            return true;
         }
+        return true;
     }
 
     protected static List<Well> getShortStaffedWells(RobotController rc) throws GameActionException {
@@ -156,7 +158,11 @@ public abstract strictfp class Controller {
         if (wellCache.size() == 0) {
             return;
         }
+
         List<Well> wells = Communications.getWells(rc);
+        if (wells == null)
+            return;
+
         Iterator<WellInfo> iterator = wellCache.iterator();
         while (iterator.hasNext()) {
             WellInfo wellInfo = iterator.next();
