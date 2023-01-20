@@ -209,8 +209,6 @@ public class Communications {
             int y = unpack(packedLoc, PackedMask.WELL_Y);
             int packedStatus = rc.readSharedArray(i + 1);
             int workerCount = unpack(packedStatus, PackedMask.WELL_WORKER_COUNT);
-            if (x == 11 && y == 8 && rc.getType() == RobotType.HEADQUARTERS)
-                System.out.println(x + " " + y + " " + workerCount);
             //System.out.println("This wells count is " + workerCount);
             int pressure = unpack(packedStatus, PackedMask.WELL_PRESSURE);
 
