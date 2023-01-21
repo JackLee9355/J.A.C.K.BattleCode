@@ -141,9 +141,13 @@ public class CarrierController extends Controller {
     @Override
     public void run(RobotController rc) throws GameActionException {
         super.run(rc);
-        attemptToPutAnchor(rc);
-
         attack(rc);
+        if (rc.getAnchor() != null) {
+            attemptToPutAnchor(rc); // TODO: improve
+            generalExplore(rc);
+            return;
+        }
+
         if (totalHeld(rc) < 40) {
             if (wellLocation == null) {
                 assignWell(rc);
@@ -171,13 +175,13 @@ public class CarrierController extends Controller {
 //                    pathingAStar.pathTo(rc, headquarter);
                     pathing.move(headquarter);
                 }
+                attemptDeposit(rc);
                 if (rc.canTakeAnchor(headquarter, Anchor.STANDARD)) {
                     rc.takeAnchor(headquarter, Anchor.STANDARD);
                 }
                 if (rc.canTakeAnchor(headquarter, Anchor.ACCELERATING)) {
                     rc.takeAnchor(headquarter, Anchor.ACCELERATING);
                 }
-                attemptDeposit(rc);
             }
             assignWell(rc);
         }
