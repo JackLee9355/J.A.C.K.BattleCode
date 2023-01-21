@@ -4,7 +4,6 @@ import battlecode.common.*;
 import jackPlayer.Communications.*;
 import jackPlayer.Pathing.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class LauncherController extends Controller {
@@ -20,7 +19,7 @@ public class LauncherController extends Controller {
     private final Team myTeam;
     private final Team enemyTeam;
     private RobotInfo[] enemies;
-    boolean visitedApprox;
+    boolean visitedApproxLocations;
     MapLocation guessLoc;
 
     public LauncherController(RobotController rc) {
@@ -29,7 +28,7 @@ public class LauncherController extends Controller {
         myTeam = rc.getTeam();
         enemyTeam = myTeam.opponent();
         pathing = new RobotPathing(rc);
-        visitedApprox = false;
+        visitedApproxLocations = false;
         guessLoc = null;
     }
 
@@ -37,20 +36,20 @@ public class LauncherController extends Controller {
         MapLocation bestEnemy = null;
         double minWeight = Integer.MAX_VALUE;
 
-        for (int i = 0; i < enemies.length; i++) {
+        for (RobotInfo enemy : enemies) {
 
-            if (enemies[i].getType() == RobotType.HEADQUARTERS) {
+            if (enemy.getType() == RobotType.HEADQUARTERS) {
                 continue;
             }
 
-            MapLocation enemyLocation = enemies[i].getLocation();
-            double enemyMaxHealth = enemies[i].getType().getMaxHealth();
-            double health = enemies[i].getHealth();
+            MapLocation enemyLocation = enemy.getLocation();
+            double enemyMaxHealth = enemy.getType().getMaxHealth();
+            double health = enemy.getHealth();
             double distance = myLocation.distanceSquaredTo(enemyLocation);
             double weight = 0;
 
             // Priorities
-            switch (enemies[i].getType()) {
+            switch (enemy.getType()) {
                 case BOOSTER:
                     weight += WEIGHT_BOOSTER;
                     break;
@@ -174,7 +173,7 @@ public class LauncherController extends Controller {
 
         // Move to a guess of where the enemy is
         List<MapLocation> enemyGuesses = approxEnemyBase(rc);
-        if (!visitedApprox && guessLoc == null && enemyGuesses != null) {
+        if (!visitedApproxLocations && guessLoc == null && enemyGuesses != null) {
             MapLocation min = null;
             int dist = Integer.MAX_VALUE;
             for (MapLocation e : enemyGuesses) {
@@ -185,17 +184,17 @@ public class LauncherController extends Controller {
                 }
             }
             if (dist < type.visionRadiusSquared) {
-                visitedApprox = true;
+                visitedApproxLocations = true;
             }
             guessLoc = min;
         }
-        if (!visitedApprox && !alreadyMoved) {
+        if (!visitedApproxLocations && !alreadyMoved) {
             if (guessLoc != null) {
                 rc.setIndicatorString("Heading to guess: (" + guessLoc.x + ", " + guessLoc.y + ")");
                 pathing.move(guessLoc);
                 alreadyMoved = true;
                 if (myLocation.distanceSquaredTo(guessLoc) < type.actionRadiusSquared) {
-                    visitedApprox = true;
+                    visitedApproxLocations = true;
                 }
             }
         }

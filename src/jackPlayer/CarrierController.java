@@ -29,7 +29,7 @@ public class CarrierController extends Controller {
 
         MapLocation curLoc = rc.getLocation();
         // If this is too expensive switch to repeatedly taking the minimum
-        Collections.sort(wells, Comparator.comparingInt(o -> curLoc.distanceSquaredTo(o.getMapLocation())));
+        wells.sort(Comparator.comparingInt(o -> curLoc.distanceSquaredTo(o.getMapLocation())));
         for (Well well : wells) {
             if (Communications.getPage(rc) != PageLocation.WELLS.page)
                 break;
@@ -141,7 +141,6 @@ public class CarrierController extends Controller {
     @Override
     public void run(RobotController rc) throws GameActionException {
         super.run(rc);
-
         attemptToPutAnchor(rc);
 
         attack(rc);
@@ -172,6 +171,12 @@ public class CarrierController extends Controller {
 //                    pathingAStar.pathTo(rc, headquarter);
                     pathing.move(headquarter);
                 }
+                if (rc.canTakeAnchor(headquarter, Anchor.STANDARD)) {
+                    rc.takeAnchor(headquarter, Anchor.STANDARD);
+                }
+                if (rc.canTakeAnchor(headquarter, Anchor.ACCELERATING)) {
+                    rc.takeAnchor(headquarter, Anchor.ACCELERATING);
+                }
                 attemptDeposit(rc);
             }
             assignWell(rc);
@@ -183,11 +188,11 @@ public class CarrierController extends Controller {
         if (rc.isActionReady()) {
             RobotInfo[] enemies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent());
             int indexAttack = -1;
-            int health = 100;
+            int health = Integer.MAX_VALUE;
             for (int i = 0; i < enemies.length; i++) {
                 int enemyHealth = enemies[i].getHealth();
                 RobotInfo enemy = enemies[i];
-                if (enemy.getType().equals(RobotType.CARRIER) || enemy.getType().equals(RobotType.DESTABILIZER) || enemy.getType().equals(RobotType.LAUNCHER)) {
+                if (!enemy.getType().equals(RobotType.HEADQUARTERS)) {
                     if (enemyHealth == rc.getType().damage) {
                         indexAttack = i;
                         break;
@@ -199,11 +204,6 @@ public class CarrierController extends Controller {
             }
             if (indexAttack >= 0) {
                 MapLocation enemyLoc = enemies[indexAttack].getLocation();
-                if (rc.canAttack(enemyLoc)) {
-                    rc.attack(enemyLoc);
-                }
-            } else if (enemies.length > 0) { //there exist enemies in the action range, but they are all at full health
-                MapLocation enemyLoc = enemies[0].getLocation();
                 if (rc.canAttack(enemyLoc)) {
                     rc.attack(enemyLoc);
                 }
