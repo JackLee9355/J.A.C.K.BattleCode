@@ -5,6 +5,8 @@ import battlecode.common.*;
 public abstract class Pathing {
     private Direction alongObstacleDir = null;
     private MapLocation currentTarget = null;
+    private MapLocation moveLocation = null;
+    private int stuck = 0;
     private Tracker tracker;
     public RobotController rc;
 
@@ -21,12 +23,14 @@ public abstract class Pathing {
     private void update(MapLocation target) {
         if (!target.equals(currentTarget)) {
             tracker.reset();
+            moveLocation = null;
         }
         currentTarget = target;
         tracker.add(rc.getLocation());
     }
 
     private void bugMove(MapLocation target) throws GameActionException {
+        // rc.setIndicatorString("Bug Pathing to " + target);
         // Cool down active, can't move
         if (!rc.isMovementReady()) {
             return;
@@ -82,16 +86,30 @@ public abstract class Pathing {
 
         // Get the best direction to move in computed by bellman ford
         Direction dir = getBestDirection(target);
-
         // Attempt to move if best direction was found, hasn't been seen in the tracker
         // (assuming our destination hasn't changed), and we can move else we will attempt a
         // possible not optimal bug move
-        if (dir != null && !tracker.check(rc.getLocation().add(dir)) && rc.canMove(dir)) {
-            rc.move(dir);
-            tracker.add(rc.getLocation());
-        } else {
-            bugMove(target);
+
+        if (dir != null) {
+            MapLocation optionToMove = rc.getLocation().add(dir);
+            rc.setIndicatorString("BFS Pathing to " + target + ", goto: " + optionToMove + ", seen? " + tracker.check(optionToMove));
+
+            if (moveLocation != optionToMove) moveLocation = optionToMove;
+            if (moveLocation == optionToMove) stuck++;
+
+            if (stuck == 4) {
+                tracker.reset();
+                stuck = 0;
+            }
+
+            if (!tracker.check(optionToMove) && rc.canMove(dir)) {
+                rc.move(dir);
+                tracker.add(optionToMove);
+                alongObstacleDir = null;
+            }
         }
+
+        bugMove(target);
     }
 
     public abstract Direction getBestDirection(MapLocation target) throws GameActionException;

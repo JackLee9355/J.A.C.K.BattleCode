@@ -123,13 +123,13 @@ def generateBFS(vision: int) -> str:
         for x, y in itertools.product(range(-8, 8), range(-8, 8)):
             if distanceSquared(x, y) == r2:
                 res += textwrap.indent(textwrap.dedent(f"""
-                    if (rc.canSenseLocation(loc{encode(x, y)})) {{ // check ({x}, {y})
+                    if (rc.canSenseLocation(loc{encode(x, y)}) && rc.sensePassability(loc{encode(x, y)})) {{ // check ({x}, {y})
                 """), "\t\t").rstrip("\n")
 
                 
                 if r2 <= 2:
                     res += textwrap.indent(textwrap.dedent(f"""
-                        if (!rc.isLocationOccupied(loc{encode(x, y)}) && rc.sensePassability(loc{encode(x, y)})) {{ 
+                        if (!rc.isLocationOccupied(loc{encode(x, y)})) {{ 
                     """), "\t\t\t").rstrip("\n")
 
                 surroundings = []
@@ -164,41 +164,40 @@ def generateBFS(vision: int) -> str:
 def generateSelection(vision: int, smallerVision: int) -> str:
 
     # PART 3
-    res = textwrap.indent(textwrap.dedent(f"""
-        /* 
-         * PART 3: Massive Switch Statement
-         * We check if the target location is in the vision of the robot that
-         * Bellman-Ford was ran on
-        */        
-    """), "\t\t")
+    # res = textwrap.indent(textwrap.dedent(f"""
+    #     /* 
+    #      * PART 3: Massive Switch Statement
+    #      * We check if the target location is in the vision of the robot that
+    #      * Bellman-Ford was ran on
+    #     */        
+    # """), "\t\t")
 
-    res += textwrap.indent(textwrap.dedent(f"""
-        int target_dx = target.x - loc{encode(0, 0)}.x;
-        int target_dy = target.y - loc{encode(0, 0)}.y;
-        switch (target_dx) {{
-    """), "\t\t").rstrip("\n")
+    # res += textwrap.indent(textwrap.dedent(f"""
+    #     int target_dx = target.x - loc{encode(0, 0)}.x;
+    #     int target_dy = target.y - loc{encode(0, 0)}.y;
+    #     switch (target_dx) {{
+    # """), "\t\t").rstrip("\n")
 
-    for targetX in range(-8, 8):
-        if targetX ** 2 <= vision:
-            res += textwrap.indent(textwrap.dedent(f"""
-                case {targetX}:
-                    switch (target_dy) {{
-            """), "\t\t\t").rstrip("\n")
+    # for targetX in range(-8, 8):
+    #     if targetX ** 2 <= vision:
+    #         res += textwrap.indent(textwrap.dedent(f"""
+    #             case {targetX}:
+    #                 switch (target_dy) {{
+    #         """), "\t\t\t").rstrip("\n")
 
-            for targetY in range(-8, 8):
-                if distanceSquared(targetX, targetY) <= vision:
-                    res += textwrap.indent(textwrap.dedent(f"""
-                        case {targetY}:
-                            return dir{encode(targetX, targetY)}; // destination is at relative location ({targetX}, {targetY})
-                    """), "\t\t\t\t\t")
-            res += textwrap.indent(textwrap.dedent(f"""
-                }}
-                break;
-            """), "\t\t\t\t").strip("\n")
+    #         for targetY in range(-8, 8):
+    #             if distanceSquared(targetX, targetY) <= vision:
+    #                 res += textwrap.indent(textwrap.dedent(f"""
+    #                     case {targetY}:
+    #                         return dir{encode(targetX, targetY)}; // destination is at relative location ({targetX}, {targetY})
+    #                 """), "\t\t\t\t\t")
+    #         res += textwrap.indent(textwrap.dedent(f"""
+    #             }}
+    #             break;
+    #         """), "\t\t\t\t").strip("\n")
     
     # PART 4
-    res += textwrap.indent(textwrap.dedent(f"""
-        }}
+    res = textwrap.indent(textwrap.dedent(f"""
 
         /* 
          * PART 4: Edge Checking
@@ -215,10 +214,10 @@ def generateSelection(vision: int, smallerVision: int) -> str:
     # We only want the (x, y) locations that are at the edge of the robots vision radius,
     # so we check if the point is between the smaller vision & actual vision
     for x, y in itertools.product(range(-8, 8), range(-8, 8)):
-        if smallerVision < distanceSquared(x, y) <= vision:
+        if 1 <= distanceSquared(x, y) <= vision:
             res += textwrap.indent(textwrap.dedent(f"""
                 double score{encode(x,y)} = (currDist - Math.sqrt(loc{encode(x,y)}.distanceSquaredTo(target))) / dist{encode(x,y)}; // ({x}, {y})
-                if (score{encode(x,y)} > bestScore) {{
+                if (score{encode(x,y)} > bestScore && dir{encode(x,y)} != null) {{
                     bestScore = score{encode(x,y)};
                     ans = dir{encode(x,y)};
                 }}
@@ -233,16 +232,16 @@ def generate(unit: str) -> None:
     bot = "Amplifier" if unit == "Amplifier" else "Robot"
     vision = VISION_EUCLIDEAN_DISTANCE[unit]
     smallerVision = SMALLER_VISION_EUCLIDEAN_DISTANCE[unit]
-    file = open(f"{unit}Pathing.java", "w")
+    file = open(f"RobotPathing.java", "w")
 
     result = textwrap.dedent(f"""
         // Inspired by https://github.com/IvanGeffner/battlecode2021/blob/master/thirtyone/BFSMuckraker.java.
         package jackPlayer.Pathing;
         import battlecode.common.*;
         
-        public class {unit}Pathing extends Pathing {{
+        public class RobotPathing extends Pathing {{
 
-            public {unit}Pathing(RobotController rc) {{
+            public RobotPathing(RobotController rc) {{
                 super(rc);
             }}
     """).lstrip("\n")

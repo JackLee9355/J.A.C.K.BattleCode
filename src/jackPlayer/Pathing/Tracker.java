@@ -4,21 +4,21 @@ import battlecode.common.*;
 
 public class Tracker {
     private final static int ARRAY_SIZE = 60;
-    private long[] visitedLocations;
+    private boolean[][] visitedLocations;
 
     public Tracker() {
-        visitedLocations = new long[ARRAY_SIZE];
+        visitedLocations = new boolean[ARRAY_SIZE][ARRAY_SIZE];
     }
 
     public void reset() {
-        visitedLocations = new long[ARRAY_SIZE];
+        visitedLocations = new boolean[ARRAY_SIZE][ARRAY_SIZE];
     }
 
     public void add(MapLocation location) {
-        visitedLocations[location.x] |= (1 << location.y);
+        visitedLocations[location.x][location.y] = true;
     }
 
     public boolean check(MapLocation location) {
-        return (visitedLocations[location.x] & (1 << location.y)) > 0;
+        return visitedLocations[location.x][location.y];
     }
 }
