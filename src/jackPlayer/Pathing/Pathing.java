@@ -5,12 +5,10 @@ import battlecode.common.*;
 public abstract class Pathing {
     private Direction alongObstacleDir = null;
     private MapLocation currentTarget = null;
-    private MapLocation moveLocation = null;
-    private int stuck = 0;
     private Tracker tracker;
     public RobotController rc;
 
-    public Pathing (RobotController rc) {
+    public Pathing(RobotController rc) {
         this.rc = rc;
         this.tracker = new Tracker();
     }
@@ -23,7 +21,6 @@ public abstract class Pathing {
     private void update(MapLocation target) {
         if (!target.equals(currentTarget)) {
             tracker.reset();
-            moveLocation = null;
         }
         currentTarget = target;
         tracker.add(rc.getLocation());
@@ -75,11 +72,9 @@ public abstract class Pathing {
 
         // Target is adjacent to my location & is unoccupied & is passable
         if (rc.getLocation().distanceSquaredTo(target) <= 2) {
-            if (rc.isLocationOccupied(target) && rc.sensePassability(target)) {
-                Direction dir = rc.getLocation().directionTo(target);
-                if (rc.canMove(dir)) {
-                    rc.move(dir);
-                }
+            Direction dir = rc.getLocation().directionTo(target);
+            if (rc.canMove(dir)) {
+                rc.move(dir);
             }
             return;
         }
@@ -92,16 +87,6 @@ public abstract class Pathing {
 
         if (dir != null) {
             MapLocation optionToMove = rc.getLocation().add(dir);
-            rc.setIndicatorString("BFS Pathing to " + target + ", goto: " + optionToMove + ", seen? " + tracker.check(optionToMove));
-
-            if (moveLocation != optionToMove) moveLocation = optionToMove;
-            if (moveLocation == optionToMove) stuck++;
-
-            if (stuck == 4) {
-                tracker.reset();
-                stuck = 0;
-            }
-
             if (!tracker.check(optionToMove) && rc.canMove(dir)) {
                 rc.move(dir);
                 tracker.add(optionToMove);
