@@ -36,9 +36,9 @@ public abstract strictfp class Controller {
             "#### #### #### ####".toCharArray(),
             "#    #    #       #".toCharArray(),
             "#    #    #      # ".toCharArray(),
-            "# ## # ## ###    # ".toCharArray(),
+            "# ## # ## ###   ## ".toCharArray(),
             "#  # #  # #     #  ".toCharArray(),
-            "#  # #  # #     #  ".toCharArray(),
+            "#  # #  # #    #   ".toCharArray(),
             "#### #### #### ####".toCharArray()
     };
 
@@ -52,12 +52,22 @@ public abstract strictfp class Controller {
     }
 
     private void writeBM(RobotController rc) {
+        boolean set = false;
         int bx = rng.nextInt(BM_WIDTH);
         int by = rng.nextInt(BM_HEIGHT);
         int x = bx;
         int y = BM_HEIGHT - by - 1;
-        System.out.println("Sent BM at " + x + ", " + y);
-        rc.setIndicatorDot(new MapLocation(x, y), 122, 0, 25);
+        while (!set) {
+            if (BM_MESSAGE[by][bx] == '#') {
+                rc.setIndicatorDot(new MapLocation(x, y), 255, 255, 255);
+                set = true;
+            } else {
+                bx = rng.nextInt(BM_WIDTH);
+                by = rng.nextInt(BM_HEIGHT);
+                x = bx;
+                y = BM_HEIGHT - by - 1;
+            }
+        }
     }
 
     public void run(RobotController rc) throws GameActionException {
@@ -70,7 +80,9 @@ public abstract strictfp class Controller {
         if (rc.canWriteSharedArray(0, 0)) {
             writeWellCache(rc);
         }
-//        writeBM(rc);
+        if (rc.getRoundNum() > 1000) {
+            writeBM(rc);
+        }
     }
 
     protected MapLocation rotate(MapLocation point) {
