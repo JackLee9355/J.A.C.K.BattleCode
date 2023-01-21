@@ -81,24 +81,38 @@ public abstract strictfp class Controller {
         return new MapLocation(centerX + dx, centerY + dy);
     }
 
+    protected MapLocation flipX(MapLocation point) {
+        int centerX = mapWidth / 2;
+        int dx = centerX - point.x;
+        return new MapLocation(centerX + dx, point.y);
+    }
+
+    protected MapLocation flipY(MapLocation point) {
+        int centerY = mapHeight / 2;
+        int dy = centerY - point.y;
+        return new MapLocation(point.x, centerY + dy);
+    }
+
     protected List<MapLocation> approxEnemyBase(RobotController rc) throws GameActionException {
         List<Headquarter> headquarters = Communications.getHeadQuarters(rc);
         if (headquarters == null) {
             return null;
         }
-        List<MapLocation> rotated = new ArrayList<>();
+        List<MapLocation> guesses = new ArrayList<>();
         for (Headquarter h : headquarters) {
-            rotated.add(rotate(h.getMapLocation()));
+            guesses.add(rotate(h.getMapLocation()));
         }
-        return rotated;
+        return guesses;
     }
 
     protected static boolean manageWell(RobotController rc, WellInfo wellInfo, List<Well> wells) throws GameActionException {
         int index = -1;
         if (wells != null) {
+            MapLocation wellLocation = wellInfo.getMapLocation();
             for (int i = 0; i < wells.size(); i++) {
                 Well w = wells.get(i);
-                if (w.getMapLocation().equals(wellInfo.getMapLocation())) {
+                MapLocation compare = w.getMapLocation();
+                if (wellLocation.x == compare.x && wellLocation.y == compare.y) {
                     index = i;
                     break;
                 }
@@ -120,6 +134,7 @@ public abstract strictfp class Controller {
                     type = null;
             }
             if (type != null) {
+//                System.out.println("Adding well at: (" + wellInfo.getMapLocation().x + ", " + wellInfo.getMapLocation().y + ")");
                 Communications.input(rc, type, wellInfo.getMapLocation().x, wellInfo.getMapLocation().y);
             }
             return false;
