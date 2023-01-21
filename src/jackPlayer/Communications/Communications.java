@@ -87,6 +87,12 @@ public class Communications {
                     rc.writeSharedArray(i + 1, pages[PageLocation.WELLS.page][i + 1]);
                 }
                 return true;
+            } else {
+                int well_X = unpack(pages[PageLocation.WELLS.page][i], PackedMask.WELL_X);
+                int well_Y = unpack(pages[PageLocation.WELLS.page][i], PackedMask.WELL_Y);
+                if (x == well_X && y == well_Y) {
+                    return true;
+                }
             }
         }
         return false;
