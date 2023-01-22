@@ -13,13 +13,23 @@ public class CarrierController extends Controller {
 
     private MapLocation headquarter;
     private MapLocation wellLocation;
+    private Team myTeam;
     private ResourceType wellType;
+    private Queue<MapLocation> moves;
+    private MapLocation target;
+    private int[][] adjFromTarget = {
+        {0, 4}, {4, 0}, {-4, 0}, {0, -4},
+        {4, 4}, {4, -4}, {-4, 4}, {-4, -4}
+    };
 
     public CarrierController(RobotController rc) throws GameActionException {
         super(rc);
         assignWell(rc);
         assignHQ(rc);
         pathing = new RobotPathing(rc);
+        moves = new ArrayDeque<>();
+        myTeam = rc.getTeam();
+        target = null;
     }
 
     private void assignWell(RobotController rc) throws GameActionException {
@@ -109,7 +119,8 @@ public class CarrierController extends Controller {
         int[] islands = rc.senseNearbyIslands();
 
         for (int idx : islands) {
-            if (rc.senseAnchor(idx) != null) {
+            // Don't try to place on currently occupied island by my team
+            if (rc.senseAnchor(idx) != null && rc.senseTeamOccupyingIsland(idx).equals(myTeam)) {
                 continue;
             }
 
@@ -141,7 +152,14 @@ public class CarrierController extends Controller {
     @Override
     public void run(RobotController rc) throws GameActionException {
         super.run(rc);
+        
+        moves.add(myLocation);
+        if (moves.size() > 5) {
+            moves.remove();
+        }
+
         attack(rc);
+
         if (rc.getAnchor() != null) {
             attemptToPutAnchor(rc); // TODO: improve
             generalExplore(rc);
@@ -156,8 +174,33 @@ public class CarrierController extends Controller {
                 generalExplore(rc);
             } else {
                 rc.setIndicatorString("Gathering from Well: " + wellLocation.x + ", " + wellLocation.y);
-                if (wellLocation.distanceSquaredTo(myLocation) > 2) {
-//                    pathingAStar.pathTo(rc, wellLocation);
+                if (target != null && moves.size() == 5 && myLocation.distanceSquaredTo(moves.peek()) <= 2) {
+                    target = null; 
+                    moves.clear();
+                }
+
+                if (target != null) {
+                    pathing.move(target);
+                    if (target.distanceSquaredTo(myLocation) <= 2) {
+                        target = null; 
+                        moves.clear();
+                    }
+                } else if (moves.size() == 5 && myLocation.distanceSquaredTo(moves.peek()) <= 2 && wellLocation.distanceSquaredTo(myLocation) > 2) {
+                    List<MapLocation> randomLocations = new ArrayList<>();
+                    int x = wellLocation.x, y = wellLocation.y;
+
+                    for (int[] dir : adjFromTarget) {
+                        int xf = x + dir[0], yf = y + dir[1];
+                        if (xf >= 0 && xf < mapWidth && yf >= 0 && yf < mapHeight) {
+                            randomLocations.add(new MapLocation(xf, yf));
+                        }
+                    }
+                    
+                    int index = rng.nextInt(randomLocations.size());
+                    target = randomLocations.get(index);
+                    pathing.move(target);
+                } else if (wellLocation.distanceSquaredTo(myLocation) > 2) {
+                    // pathingAStar.pathTo(rc, wellLocation);
                     pathing.move(wellLocation);
                 }
                 attemptCollect(rc);
@@ -172,7 +215,7 @@ public class CarrierController extends Controller {
             } else {
                 rc.setIndicatorString("Returning to Headquarters: " + headquarter.x + ", " + headquarter.y);
                 if (headquarter.distanceSquaredTo(myLocation) > 2) {
-//                    pathingAStar.pathTo(rc, headquarter);
+                    // pathingAStar.pathTo(rc, headquarter);
                     pathing.move(headquarter);
                 }
                 attemptDeposit(rc);
