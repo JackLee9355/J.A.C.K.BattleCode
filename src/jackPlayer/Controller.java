@@ -35,9 +35,9 @@ public abstract strictfp class Controller {
             "#### #### #### ####".toCharArray(),
             "#    #    #       #".toCharArray(),
             "#    #    #      # ".toCharArray(),
-            "# ## # ## ###    # ".toCharArray(),
+            "# ## # ## ###   ## ".toCharArray(),
             "#  # #  # #     #  ".toCharArray(),
-            "#  # #  # #     #  ".toCharArray(),
+            "#  # #  # #    #   ".toCharArray(),
             "#### #### #### ####".toCharArray()
     };
 
@@ -53,12 +53,22 @@ public abstract strictfp class Controller {
     }
 
     private void writeBM(RobotController rc) {
+        boolean set = false;
         int bx = rng.nextInt(BM_WIDTH);
         int by = rng.nextInt(BM_HEIGHT);
         int x = bx;
         int y = BM_HEIGHT - by - 1;
-        System.out.println("Sent BM at " + x + ", " + y);
-        rc.setIndicatorDot(new MapLocation(x, y), 122, 0, 25);
+        while (!set) {
+            if (BM_MESSAGE[by][bx] == '#') {
+                rc.setIndicatorDot(new MapLocation(x, y), 255, 255, 255);
+                set = true;
+            } else {
+                bx = rng.nextInt(BM_WIDTH);
+                by = rng.nextInt(BM_HEIGHT);
+                x = bx;
+                y = BM_HEIGHT - by - 1;
+            }
+        }
     }
 
     public void run(RobotController rc) throws GameActionException {
@@ -71,7 +81,9 @@ public abstract strictfp class Controller {
         if (rc.canWriteSharedArray(0, 0)) {
             writeWellCache(rc);
         }
-//        writeBM(rc);
+        if (rc.getRoundNum() > 1000) {
+            writeBM(rc);
+        }
     }
 
     protected MapLocation rotate(MapLocation point) {
@@ -82,27 +94,38 @@ public abstract strictfp class Controller {
         return new MapLocation(centerX + dx, centerY + dy);
     }
 
+    protected MapLocation flipX(MapLocation point) {
+        int centerX = mapWidth / 2;
+        int dx = centerX - point.x;
+        return new MapLocation(centerX + dx, point.y);
+    }
+
+    protected MapLocation flipY(MapLocation point) {
+        int centerY = mapHeight / 2;
+        int dy = centerY - point.y;
+        return new MapLocation(point.x, centerY + dy);
+    }
+
     protected List<MapLocation> approxEnemyBase(RobotController rc) throws GameActionException {
         List<Headquarter> headquarters = Communications.getHeadQuarters(rc);
         if (headquarters == null) {
             return null;
         }
-        List<MapLocation> rotated = new ArrayList<>();
+        List<MapLocation> guesses = new ArrayList<>();
         for (Headquarter h : headquarters) {
-            rotated.add(rotate(h.getMapLocation()));
+            guesses.add(rotate(h.getMapLocation()));
         }
-        return rotated;
+        return guesses;
     }
 
     protected static boolean manageWell(RobotController rc, WellInfo wellInfo, List<Well> wells) throws GameActionException {
-        if (wells == null)
-            return false;
-
         int index = -1;
         if (wells != null) {
+            MapLocation wellLocation = wellInfo.getMapLocation();
             for (int i = 0; i < wells.size(); i++) {
                 Well w = wells.get(i);
-                if (w.getMapLocation().equals(wellInfo.getMapLocation())) {
+                MapLocation compare = w.getMapLocation();
+                if (wellLocation.x == compare.x && wellLocation.y == compare.y) {
                     index = i;
                     break;
                 }
@@ -126,10 +149,11 @@ public abstract strictfp class Controller {
             if (type != null) {
                 Communications.input(rc, type, wellInfo.getMapLocation().x, wellInfo.getMapLocation().y);
             }
+            return false;
         } else {
             // TODO: update info for well
+            return true;
         }
-        return true;
     }
 
     protected static List<Well> getShortStaffedWells(RobotController rc) throws GameActionException {

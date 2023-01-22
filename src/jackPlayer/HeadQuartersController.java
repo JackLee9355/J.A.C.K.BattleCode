@@ -107,7 +107,7 @@ public class HeadQuartersController extends Controller {
 
     private void constructUnits(RobotController rc) throws GameActionException {
         boolean built = true;
-        if (turnCount % 10 == 5) {
+        if (turnCount % 100 == 25) {
             constructAmplifier(rc);
         }
         while (rc.isActionReady() && built) {
@@ -135,7 +135,7 @@ public class HeadQuartersController extends Controller {
             if (turnCount > 10) {
                 Communications.iteratePage(rc);
             }
-            if (turnCount > 100) {
+            if (turnCount > 200) {
                 if ((turnCount / 50) % 2 == 0) {
                     if (focusTarget == null) {
                         List<MapLocation> targets = approxEnemyBase(rc);
@@ -152,17 +152,19 @@ public class HeadQuartersController extends Controller {
                     Communications.updateControl(rc, 0, 0, 0);
                 }
             }
-//            if (wells != null) {
-//                StringBuilder sb = new StringBuilder();
-//                for (Well well : wells) {
-//                    sb.append(well.getMapLocation().x).append(" ").append(well.getMapLocation().y).append(", ");
+//            if (turnCount % 100 == 0) {
+//                List<Well> wells = Communications.getWells(rc);
+//                if (wells != null) {
+//                    StringBuilder sb = new StringBuilder();
+//                    for (Well well : wells) {
+//                        sb.append("(").append(well.getMapLocation().x).append(", ").append(well.getMapLocation().y).append("), ");
+//                    }
+//                    sb.append("\n");
+//                    System.out.println(sb.toString());
 //                }
-//                sb.append("\n");
-//                System.out.println(sb.toString());
 //            }
         }
-
-        if (turnCount >= 400 && anchorsBuilt < 2) {
+        if (turnCount >= 400 && (turnCount / 20) % 5 == 0 && anchorsBuilt < 2) {
             if (rc.canBuildAnchor(Anchor.STANDARD)) {
                 rc.buildAnchor(Anchor.STANDARD);
                 anchorsBuilt++;
