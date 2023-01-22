@@ -43,8 +43,8 @@ public abstract strictfp class Controller {
 
     private static final int BM_HEIGHT = BM_MESSAGE.length;
     private static final int BM_WIDTH = BM_MESSAGE[0].length;
-    protected static final int ATTENDANCE_CYCLE = 50;
-    protected static final int WELL_STAFF = 8;
+    protected static final int ATTENDANCE_CYCLE = 100;
+    protected static final int WELL_STAFF = 7;
 
     public Controller(RobotController rc) {
         mapWidth = rc.getMapWidth();

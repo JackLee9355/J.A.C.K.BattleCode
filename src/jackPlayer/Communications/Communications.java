@@ -215,7 +215,8 @@ public class Communications {
             int y = unpack(packedLoc, PackedMask.WELL_Y);
             int packedStatus = rc.readSharedArray(i + 1);
             int workerCount = unpack(packedStatus, PackedMask.WELL_WORKER_COUNT);
-            //System.out.println("This wells count is " + workerCount);
+//            if (rc.getType() == RobotType.HEADQUARTERS)
+//                System.out.println("This wells count is " + workerCount + " at " + x + " " + y);
             int pressure = unpack(packedStatus, PackedMask.WELL_PRESSURE);
 
             wells.add(new Well(i, hasAmplifier, workerCount, pressure, intToResourceType(wellType), new MapLocation(x, y)));
@@ -236,8 +237,6 @@ public class Communications {
         }
 
         int newCount = well.getWorkerCount() < 15 ? well.getWorkerCount() + 1 : 15;
-        // new RuntimeException().printStackTrace();
-        // System.out.println("x " + well.getMapLocation().x + " y " + well.getMapLocation().y + " new Count " + newCount + " old " + well.getWorkerCount() + " turn " + rc.getRoundNum() + " team " + rc.getTeam().toString() + " robot x " + rc.getLocation().x + " robot y " + rc.getLocation().y);
         rc.writeSharedArray(countIndex, packWellStatus(newCount, well.getPressure()));
         return true;
     }

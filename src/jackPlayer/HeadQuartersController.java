@@ -16,7 +16,6 @@ public class HeadQuartersController extends Controller {
     int amplifiersConstructed;
     int anchorsBuilt;
     MapLocation focusTarget;
-    private int[][] prevWorkerCount = new int[60][60];
 
     public HeadQuartersController(RobotController rc) {
         super(rc);
@@ -62,16 +61,11 @@ public class HeadQuartersController extends Controller {
         if (rc.getResourceAmount(ResourceType.ADAMANTIUM) < 50)
             return false;
 
+        if (rc.getRoundNum() >= ATTENDANCE_CYCLE && rc.getRoundNum() % ATTENDANCE_CYCLE < PageLocation.NUM_PAGES * 2)
+            return false;
+
         List<Well> wells = getShortStaffedWells(rc);
         if (wells == null || wells.size() == 0)
-            return false;
-        int prevStaffed = 0;
-        for (Well well : wells) {
-            if (prevWorkerCount[well.getMapLocation().x][well.getMapLocation().y] >= WELL_STAFF) {
-                prevStaffed += 1;
-            }
-        }
-        if (wells.size() == prevStaffed)
             return false;
 
         boolean built = false;
@@ -125,11 +119,7 @@ public class HeadQuartersController extends Controller {
         }
         if (headQuartersIndex == 0) {
             Communications.processInput(rc);
-            if (rc.getRoundNum() % 50 < PageLocation.NUM_PAGES && Communications.getPage(rc) == PageLocation.WELLS.page) {
-                prevWorkerCount = new int[60][60];
-                for (Well well : Communications.getWells(rc)) {
-                    prevWorkerCount[well.getMapLocation().x][well.getMapLocation().y] = well.getWorkerCount();
-                }
+            if (rc.getRoundNum() % ATTENDANCE_CYCLE < PageLocation.NUM_PAGES && Communications.getPage(rc) == PageLocation.WELLS.page) {
                 Communications.resetAllWellWorkers(rc);
             }
             if (turnCount > 10) {

@@ -12,10 +12,9 @@ import java.util.*;
 public class CarrierController extends Controller {
 
     private MapLocation headquarter;
-    private Well well;
     private MapLocation wellLocation;
+    private boolean officialAssignment; // Mechanism for temporary assignment until in writing range.
     private ResourceType wellType;
-    private boolean hasReported;
 
     public CarrierController(RobotController rc) throws GameActionException {
         super(rc);
@@ -25,6 +24,9 @@ public class CarrierController extends Controller {
     }
 
     private void assignWell(RobotController rc) throws GameActionException {
+        if (wellLocation != null && wellType != null)
+            return;
+
         List<Well> wells = getShortStaffedWells(rc);
         if (wells == null)
             return;
@@ -35,11 +37,9 @@ public class CarrierController extends Controller {
         for (Well well : wells) {
             if (Communications.getPage(rc) != PageLocation.WELLS.page)
                 break;
-
-            this.well = well;
+            officialAssignment = Communications.incrementWellWorkers(rc, well);
             wellLocation = well.getMapLocation();
             wellType = well.getType();
-            Communications.incrementWellWorkers(rc, well);
             break;
         }
     }
@@ -144,13 +144,10 @@ public class CarrierController extends Controller {
     @Override
     public void run(RobotController rc) throws GameActionException {
         super.run(rc);
-        if (rc.getRoundNum() % ATTENDANCE_CYCLE == 0)
-            hasReported = false;
-        if (!hasReported &&
-                well != null &&
-                rc.getRoundNum() % ATTENDANCE_CYCLE > PageLocation.NUM_PAGES - 1 && // Gives HQ time to reset the page.
-                Communications.incrementWellWorkers(rc, well))
-            hasReported = true;
+        if (rc.getRoundNum() % ATTENDANCE_CYCLE == 0 || (!officialAssignment && rc.canWriteSharedArray(0,0))) {
+            wellLocation = null;
+            wellType = null;
+        }
 
         attemptToPutAnchor(rc);
 
@@ -168,7 +165,7 @@ public class CarrierController extends Controller {
             if (wellLocation == null) {
                 generalExplore(rc);
             } else {
-                rc.setIndicatorString("Gathering from Well: " + wellLocation.x + ", " + wellLocation.y);
+                rc.setIndicatorString("Gathering from Well: " + wellLocation.x + ", " + wellLocation.y + " Officially: " + officialAssignment);
                 if (wellLocation.distanceSquaredTo(myLocation) > 2) {
 //                    pathingAStar.pathTo(rc, wellLocation);
                     pathing.move(wellLocation);
@@ -183,7 +180,11 @@ public class CarrierController extends Controller {
             if (headquarter == null) {
                 generalExplore(rc);
             } else {
-                rc.setIndicatorString("Returning to Headquarters: " + headquarter.x + ", " + headquarter.y);
+                if (wellLocation != null) {
+                    rc.setIndicatorString("Returning from Well: " + wellLocation.x + ", " + wellLocation.y + " Officially: " + officialAssignment + " to Headquarters: " + headquarter.x + ", " + headquarter.y);
+                } else{
+                    rc.setIndicatorString("Returning to Headquarters: " + headquarter.x + ", " + headquarter.y);
+                }
                 if (headquarter.distanceSquaredTo(myLocation) > 2) {
 //                    pathingAStar.pathTo(rc, headquarter);
                     pathing.move(headquarter);
