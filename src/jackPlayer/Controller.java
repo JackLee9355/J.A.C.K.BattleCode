@@ -157,8 +157,10 @@ public abstract strictfp class Controller {
     }
 
     protected static List<Well> getShortStaffedWells(RobotController rc) throws GameActionException {
-        List<Well> wells = Communications.getWells(rc);
+        return getShortStaffedWells(rc, Communications.getWells(rc));
+    }
 
+    protected static List<Well> getShortStaffedWells(RobotController rc, List<Well> wells) throws GameActionException {
         if (wells == null)
             return null;
 

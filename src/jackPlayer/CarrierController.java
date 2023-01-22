@@ -23,6 +23,10 @@ public class CarrierController extends Controller {
         {4, 4}, {4, -4}, {-4, 4}, {-4, -4}
     };
 
+    private static final int MIN_AD_STAFF = 2;
+    private static final double MIN_AD_PROP = 0.1;
+    private static final double MIN_MN_PROP = 0.6;
+
     public CarrierController(RobotController rc) throws GameActionException {
         super(rc);
         assignWell(rc);
@@ -33,25 +37,69 @@ public class CarrierController extends Controller {
         target = null;
     }
 
+    private boolean assignClosestWell(RobotController rc, List<Well> wells, ResourceType forced) throws GameActionException {
+        for (Well well : wells) {
+            if (forced != null && well.getType() != forced)
+                continue;
+
+            if (Communications.getPage(rc) != PageLocation.WELLS.page) {
+                System.out.println("Page change occurred while assigning well");
+                break;
+            }
+
+            officialAssignment = Communications.incrementWellWorkers(rc, well);
+            wellLocation = well.getMapLocation();
+            wellType = well.getType();
+            return true;
+        }
+        return false;
+    }
+
     private void assignWell(RobotController rc) throws GameActionException {
         if (wellLocation != null && wellType != null)
             return;
 
-        List<Well> wells = getShortStaffedWells(rc);
-        if (wells == null)
+        List<Well> allWells = Communications.getWells(rc);
+        List<Well> shortWells = getShortStaffedWells(rc, allWells);
+        if (shortWells == null)
             return;
+
+        double totalStaff = 0;
+        double mnStaff = 0;
+        double adStaff = 0;
+        for (Well well : allWells) {
+            int count = well.getWorkerCount();
+            totalStaff += count;
+            switch (well.getType()) {
+                case ADAMANTIUM:
+                    adStaff += count;
+                    break;
+                case MANA:
+                    mnStaff += count;
+                    break;
+            }
+        }
+
+        double adProp = adStaff / totalStaff;
+        double mnProp = mnStaff / totalStaff;
+        ResourceType forced = null;
+        if (adStaff < MIN_AD_STAFF || adProp < MIN_AD_PROP) {
+            forced = ResourceType.ADAMANTIUM;
+        } else if (mnProp < MIN_MN_PROP) {
+            forced = ResourceType.MANA;
+        }
 
         MapLocation curLoc = rc.getLocation();
         // If this is too expensive switch to repeatedly taking the minimum
-        wells.sort(Comparator.comparingInt(o -> curLoc.distanceSquaredTo(o.getMapLocation())));
-        for (Well well : wells) {
-            if (Communications.getPage(rc) != PageLocation.WELLS.page)
-                break;
-            officialAssignment = Communications.incrementWellWorkers(rc, well);
-            wellLocation = well.getMapLocation();
-            wellType = well.getType();
-            break;
+        shortWells.sort(Comparator.comparingInt(o -> curLoc.distanceSquaredTo(o.getMapLocation())));
+        if (!assignClosestWell(rc, shortWells, forced) && forced != null) {
+            System.out.println("No short staffed wells of selected type");
+            assignClosestWell(rc, shortWells, null);
         }
+
+        System.out.println("ad: " + adProp + " mn: " + mnProp + " forced: " + (forced == null ? "null" : forced.toString()) + " type: " + (wellType == null ? "null" : wellType.toString()));
+        for (Well well : shortWells)
+            System.out.println("x " + well.getMapLocation().x + " y " + well.getMapLocation().y + " " + well.getType().toString());
     }
 
     private void assignHQ(RobotController rc) throws GameActionException {
