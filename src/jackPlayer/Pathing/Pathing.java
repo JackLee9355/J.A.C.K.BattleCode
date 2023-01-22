@@ -51,7 +51,7 @@ public abstract class Pathing {
 
             for (int i = 0; i < 8; i++) {
 
-                if (rc.canMove(alongObstacleDir)) {
+                if (rc.canMove(alongObstacleDir) && Clock.getBytecodesLeft() > 100) {
                     rc.move(alongObstacleDir);
                     // Turn back towards obstacle
                     alongObstacleDir = alongObstacleDir.rotateLeft();
@@ -81,10 +81,10 @@ public abstract class Pathing {
 
         // Get the best direction to move in computed by bellman ford
         Direction dir = getBestDirection(target);
+
         // Attempt to move if best direction was found, hasn't been seen in the tracker
         // (assuming our destination hasn't changed), and we can move else we will attempt a
         // possible not optimal bug move
-
         if (dir != null) {
             MapLocation optionToMove = rc.getLocation().add(dir);
             if (!tracker.check(optionToMove) && rc.canMove(dir)) {

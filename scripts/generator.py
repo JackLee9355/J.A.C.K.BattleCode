@@ -149,7 +149,7 @@ def generateBFS(vision: int) -> str:
                             }}
                         """), indent)
                 
-                res += f"{indent}dist{encode(x, y)} += 1 + (rc.senseMapInfo(loc{encode(x, y)}).hasCloud() ? 4 : 2);\n"
+                res += f"{indent}dist{encode(x, y)} += 1 + (rc.senseCloud(loc{encode(x, y)}) ? 4 : 2);\n"
 
                 if r2 <= 2:
                     res += "\t\t\t}\n"
@@ -172,7 +172,8 @@ def generateSelection(vision: int, smallerVision: int) -> str:
          * to move in
         */   
         Direction ans = null;
-        double bestScore = -100000;
+        double bestScore = 0;
+        double currDist = Math.sqrt(loc{encode(0,0)}.distanceSquaredTo(target));
     """), "\t\t")
 
     # We only want the (x, y) locations that are at the edge of the robots vision radius,
@@ -180,7 +181,7 @@ def generateSelection(vision: int, smallerVision: int) -> str:
     for x, y in itertools.product(range(-8, 8), range(-8, 8)):
         if 1 <= distanceSquared(x, y) <= vision:
             res += textwrap.indent(textwrap.dedent(f"""
-                double score{encode(x,y)} = -Math.sqrt(loc{encode(x, y)}.distanceSquaredTo(target)) - dist{encode(x,y)}; // ({x}, {y})
+                double score{encode(x,y)} = (currDist - Math.sqrt(loc{encode(x,y)}.distanceSquaredTo(target))) / dist{encode(x,y)}; // ({x}, {y})
                 if (score{encode(x,y)} > bestScore && dir{encode(x,y)} != null) {{
                     bestScore = score{encode(x,y)};
                     ans = dir{encode(x,y)};

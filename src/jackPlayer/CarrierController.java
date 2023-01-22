@@ -13,6 +13,7 @@ public class CarrierController extends Controller {
 
     private MapLocation headquarter;
     private MapLocation wellLocation;
+    private Team myTeam;
     private ResourceType wellType;
     private Queue<MapLocation> moves;
     private MapLocation target;
@@ -27,6 +28,7 @@ public class CarrierController extends Controller {
         assignHQ(rc);
         pathing = new RobotPathing(rc);
         moves = new ArrayDeque<>();
+        myTeam = rc.getTeam();
         target = null;
     }
 
@@ -117,7 +119,8 @@ public class CarrierController extends Controller {
         int[] islands = rc.senseNearbyIslands();
 
         for (int idx : islands) {
-            if (rc.senseAnchor(idx) != null) {
+            // Don't try to place on currently occupied island by my team
+            if (rc.senseAnchor(idx) != null && rc.senseTeamOccupyingIsland(idx).equals(myTeam)) {
                 continue;
             }
 
@@ -149,11 +152,14 @@ public class CarrierController extends Controller {
     @Override
     public void run(RobotController rc) throws GameActionException {
         super.run(rc);
+        
         moves.add(myLocation);
         if (moves.size() > 5) {
             moves.remove();
         }
+
         attack(rc);
+
         if (rc.getAnchor() != null) {
             attemptToPutAnchor(rc); // TODO: improve
             generalExplore(rc);
