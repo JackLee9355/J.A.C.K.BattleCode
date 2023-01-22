@@ -5,15 +5,17 @@ import battlecode.common.*;
 public abstract class Pathing {
     private Direction alongObstacleDir = null;
     private MapLocation currentTarget = null;
+    private MapLocation myLocation = null;
     private Tracker tracker;
     public RobotController rc;
 
-    public Pathing (RobotController rc) {
+    public Pathing(RobotController rc) {
         this.rc = rc;
         this.tracker = new Tracker();
     }
 
     public void move(MapLocation target) throws GameActionException {
+        myLocation = rc.getLocation();
         BFSMove(target);
     }
 
@@ -27,18 +29,19 @@ public abstract class Pathing {
     }
 
     private void bugMove(MapLocation target) throws GameActionException {
+        // rc.setIndicatorString("Bug Pathing to " + target);
         // Cool down active, can't move
         if (!rc.isMovementReady()) {
             return;
         }
 
         // Verify it's not at target location
-        if (rc.getLocation().equals(target)) {
+        if (myLocation.equals(target)) {
             return;
         }
 
         // Get direction towards target
-        Direction dir = rc.getLocation().directionTo(target);
+        Direction dir = myLocation.directionTo(target);
 
         // Move if no wall is present in the direction && bytecode is available to check
         if (rc.canMove(dir)) {
@@ -65,17 +68,15 @@ public abstract class Pathing {
 
     private void BFSMove(MapLocation target) throws GameActionException {
         if (!rc.isMovementReady()) return;
-        if (rc.getLocation().equals(target)) return;
+        if (myLocation.equals(target)) return;
 
         update(target);
 
         // Target is adjacent to my location & is unoccupied & is passable
-        if (rc.getLocation().distanceSquaredTo(target) <= 2) {
-            if (rc.isLocationOccupied(target) && rc.sensePassability(target)) {
-                Direction dir = rc.getLocation().directionTo(target);
-                if (rc.canMove(dir)) {
-                    rc.move(dir);
-                }
+        if (myLocation.distanceSquaredTo(target) <= 2) {
+            Direction dir = myLocation.directionTo(target);
+            if (rc.canMove(dir)) {
+                rc.move(dir);
             }
             return;
         }
@@ -86,12 +87,17 @@ public abstract class Pathing {
         // Attempt to move if best direction was found, hasn't been seen in the tracker
         // (assuming our destination hasn't changed), and we can move else we will attempt a
         // possible not optimal bug move
-        if (dir != null && !tracker.check(rc.getLocation().add(dir)) && rc.canMove(dir)) {
-            rc.move(dir);
-            tracker.add(rc.getLocation());
-        } else {
-            bugMove(target);
+        if (dir != null) {
+            MapLocation optionToMove = myLocation.add(dir);
+            if (!tracker.check(optionToMove) && rc.canMove(dir)) {
+                rc.move(dir);
+                tracker.add(optionToMove);
+                alongObstacleDir = null;
+                myLocation = rc.getLocation();
+            }
         }
+
+        bugMove(target);
     }
 
     public abstract Direction getBestDirection(MapLocation target) throws GameActionException;
