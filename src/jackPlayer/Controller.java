@@ -28,7 +28,6 @@ public abstract strictfp class Controller {
             Direction.WEST,
             Direction.NORTHWEST,
     };
-
     protected static final boolean[][] managed = new boolean[60][60];
     protected static final LinkedList<WellInfo> wellCache = new LinkedList<>();
 
@@ -44,6 +43,8 @@ public abstract strictfp class Controller {
 
     private static final int BM_HEIGHT = BM_MESSAGE.length;
     private static final int BM_WIDTH = BM_MESSAGE[0].length;
+    protected static final int ATTENDANCE_CYCLE = 100;
+    protected static final int WELL_STAFF = 7;
 
     public Controller(RobotController rc) {
         mapWidth = rc.getMapWidth();
@@ -146,7 +147,6 @@ public abstract strictfp class Controller {
                     type = null;
             }
             if (type != null) {
-//                System.out.println("Adding well at: (" + wellInfo.getMapLocation().x + ", " + wellInfo.getMapLocation().y + ")");
                 Communications.input(rc, type, wellInfo.getMapLocation().x, wellInfo.getMapLocation().y);
             }
             return false;
@@ -164,7 +164,7 @@ public abstract strictfp class Controller {
 
         List<Well> shortWells = new ArrayList<>();
         for (Well well : wells) {
-            if (well.getWorkerCount() < 8 /* || well.getPressure() < 5 */) {
+            if (well.getWorkerCount() < WELL_STAFF /* || well.getPressure() < 5 */) {
                 shortWells.add(well);
             }
         }
@@ -183,7 +183,11 @@ public abstract strictfp class Controller {
         if (wellCache.size() == 0) {
             return;
         }
+
         List<Well> wells = Communications.getWells(rc);
+        if (wells == null)
+            return;
+
         Iterator<WellInfo> iterator = wellCache.iterator();
         while (iterator.hasNext()) {
             WellInfo wellInfo = iterator.next();

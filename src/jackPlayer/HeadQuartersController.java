@@ -3,6 +3,7 @@ package jackPlayer;
 import battlecode.common.*;
 import jackPlayer.Communications.Communications;
 import jackPlayer.Communications.Headquarter;
+import jackPlayer.Communications.PageLocation;
 import jackPlayer.Communications.Well;
 
 import java.util.List;
@@ -60,6 +61,9 @@ public class HeadQuartersController extends Controller {
         if (rc.getResourceAmount(ResourceType.ADAMANTIUM) < 50)
             return false;
 
+        if (rc.getRoundNum() >= ATTENDANCE_CYCLE && rc.getRoundNum() % ATTENDANCE_CYCLE < PageLocation.NUM_PAGES * 2)
+            return false;
+
         List<Well> wells = getShortStaffedWells(rc);
         if (wells == null || wells.size() == 0)
             return false;
@@ -115,6 +119,9 @@ public class HeadQuartersController extends Controller {
         }
         if (headQuartersIndex == 0) {
             Communications.processInput(rc);
+            if (rc.getRoundNum() % ATTENDANCE_CYCLE < PageLocation.NUM_PAGES && Communications.getPage(rc) == PageLocation.WELLS.page) {
+                Communications.resetAllWellWorkers(rc);
+            }
             if (turnCount > 10) {
                 Communications.iteratePage(rc);
             }

@@ -13,6 +13,7 @@ public class CarrierController extends Controller {
 
     private MapLocation headquarter;
     private MapLocation wellLocation;
+    private boolean officialAssignment; // Mechanism for temporary assignment until in writing range.
     private Team myTeam;
     private ResourceType wellType;
     private Queue<MapLocation> moves;
@@ -33,6 +34,9 @@ public class CarrierController extends Controller {
     }
 
     private void assignWell(RobotController rc) throws GameActionException {
+        if (wellLocation != null && wellType != null)
+            return;
+
         List<Well> wells = getShortStaffedWells(rc);
         if (wells == null)
             return;
@@ -43,10 +47,9 @@ public class CarrierController extends Controller {
         for (Well well : wells) {
             if (Communications.getPage(rc) != PageLocation.WELLS.page)
                 break;
-
+            officialAssignment = Communications.incrementWellWorkers(rc, well);
             wellLocation = well.getMapLocation();
             wellType = well.getType();
-            Communications.incrementWellWorkers(rc, well);
             break;
         }
     }
@@ -153,6 +156,13 @@ public class CarrierController extends Controller {
     public void run(RobotController rc) throws GameActionException {
         super.run(rc);
         
+        if (rc.getRoundNum() % ATTENDANCE_CYCLE == 0 || (!officialAssignment && rc.canWriteSharedArray(0,0))) {
+            wellLocation = null;
+            wellType = null;
+        }
+
+        attemptToPutAnchor(rc);
+        
         moves.add(myLocation);
         if (moves.size() > 5) {
             moves.remove();
@@ -213,7 +223,11 @@ public class CarrierController extends Controller {
             if (headquarter == null) {
                 generalExplore(rc);
             } else {
-                rc.setIndicatorString("Returning to Headquarters: " + headquarter.x + ", " + headquarter.y);
+                if (wellLocation != null) {
+                    rc.setIndicatorString("Returning from Well: " + wellLocation.x + ", " + wellLocation.y + " Officially: " + officialAssignment + " to Headquarters: " + headquarter.x + ", " + headquarter.y);
+                } else{
+                    rc.setIndicatorString("Returning to Headquarters: " + headquarter.x + ", " + headquarter.y);
+                }
                 if (headquarter.distanceSquaredTo(myLocation) > 2) {
                     // pathingAStar.pathTo(rc, headquarter);
                     pathing.move(headquarter);

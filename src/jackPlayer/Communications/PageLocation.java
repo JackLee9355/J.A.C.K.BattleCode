@@ -12,6 +12,7 @@ public enum PageLocation {
     public final int index;
     public final int end;
     public final int size;
+    public static final int NUM_PAGES = 2;
 
     PageLocation(int page, int index, int end, int size) {
         this.page = page;
