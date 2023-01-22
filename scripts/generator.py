@@ -149,7 +149,7 @@ def generateBFS(vision: int) -> str:
                             }}
                         """), indent)
                 
-                res += f"{indent}dist{encode(x, y)} += 1 + (rc.senseMapInfo(loc{encode(x, y)}).hasCloud() ? 10 : 0);\n"
+                res += f"{indent}dist{encode(x, y)} += 1 + (rc.senseMapInfo(loc{encode(x, y)}).hasCloud() ? 4 : 2);\n"
 
                 if r2 <= 2:
                     res += "\t\t\t}\n"
@@ -162,53 +162,17 @@ def generateBFS(vision: int) -> str:
 
 # PART 3: Massive Switch Statement & PART 4: Edge Checking
 def generateSelection(vision: int, smallerVision: int) -> str:
-
-    # PART 3
-    # res = textwrap.indent(textwrap.dedent(f"""
-    #     /* 
-    #      * PART 3: Massive Switch Statement
-    #      * We check if the target location is in the vision of the robot that
-    #      * Bellman-Ford was ran on
-    #     */        
-    # """), "\t\t")
-
-    # res += textwrap.indent(textwrap.dedent(f"""
-    #     int target_dx = target.x - loc{encode(0, 0)}.x;
-    #     int target_dy = target.y - loc{encode(0, 0)}.y;
-    #     switch (target_dx) {{
-    # """), "\t\t").rstrip("\n")
-
-    # for targetX in range(-8, 8):
-    #     if targetX ** 2 <= vision:
-    #         res += textwrap.indent(textwrap.dedent(f"""
-    #             case {targetX}:
-    #                 switch (target_dy) {{
-    #         """), "\t\t\t").rstrip("\n")
-
-    #         for targetY in range(-8, 8):
-    #             if distanceSquared(targetX, targetY) <= vision:
-    #                 res += textwrap.indent(textwrap.dedent(f"""
-    #                     case {targetY}:
-    #                         return dir{encode(targetX, targetY)}; // destination is at relative location ({targetX}, {targetY})
-    #                 """), "\t\t\t\t\t")
-    #         res += textwrap.indent(textwrap.dedent(f"""
-    #             }}
-    #             break;
-    #         """), "\t\t\t\t").strip("\n")
     
-    # PART 4
+    # PART 3
     res = textwrap.indent(textwrap.dedent(f"""
-
         /* 
-         * PART 4: Edge Checking
+         * PART 3: Edge Checking
          * If the target location wasn"t in the region Bellman-Ford ran on,
          * then we will try to find a edge node with the most optimal direction
          * to move in
         */   
-
         Direction ans = null;
-        double bestScore = 0;
-        double currDist = Math.sqrt(loc{encode(0,0)}.distanceSquaredTo(target));
+        double bestScore = -100000;
     """), "\t\t")
 
     # We only want the (x, y) locations that are at the edge of the robots vision radius,
@@ -216,7 +180,7 @@ def generateSelection(vision: int, smallerVision: int) -> str:
     for x, y in itertools.product(range(-8, 8), range(-8, 8)):
         if 1 <= distanceSquared(x, y) <= vision:
             res += textwrap.indent(textwrap.dedent(f"""
-                double score{encode(x,y)} = (currDist - Math.sqrt(loc{encode(x,y)}.distanceSquaredTo(target))) / dist{encode(x,y)}; // ({x}, {y})
+                double score{encode(x,y)} = -Math.sqrt(loc{encode(x, y)}.distanceSquaredTo(target)) - dist{encode(x,y)}; // ({x}, {y})
                 if (score{encode(x,y)} > bestScore && dir{encode(x,y)} != null) {{
                     bestScore = score{encode(x,y)};
                     ans = dir{encode(x,y)};
@@ -240,7 +204,6 @@ def generate(unit: str) -> None:
         import battlecode.common.*;
         
         public class RobotPathing extends Pathing {{
-
             public RobotPathing(RobotController rc) {{
                 super(rc);
             }}
