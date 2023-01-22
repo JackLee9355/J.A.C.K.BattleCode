@@ -107,11 +107,12 @@ public class CarrierController extends Controller {
             moveTowards(rc, wellLocation);
         } else {
             moveTowards(rc, headquarter);
+            moveTowards(rc, headquarter);
         }
         attemptCollect(rc);
         attemptDeposit(rc);
-        int m = rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ELIXIR);
-        if(m >= 5 && m % 5 < 4){
+        int damage = (rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ELIXIR)) * 5;
+        if(damage % 4 < 3){
             attack(rc);
         }
 
