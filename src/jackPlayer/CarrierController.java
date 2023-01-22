@@ -93,13 +93,13 @@ public class CarrierController extends Controller {
         // If this is too expensive switch to repeatedly taking the minimum
         shortWells.sort(Comparator.comparingInt(o -> curLoc.distanceSquaredTo(o.getMapLocation())));
         if (!assignClosestWell(rc, shortWells, forced) && forced != null) {
-            System.out.println("No short staffed wells of selected type");
+            // System.out.println("No short staffed wells of selected type");
             assignClosestWell(rc, shortWells, null);
         }
 
-        System.out.println("ad: " + adProp + " mn: " + mnProp + " forced: " + (forced == null ? "null" : forced.toString()) + " type: " + (wellType == null ? "null" : wellType.toString()));
-        for (Well well : shortWells)
-            System.out.println("x " + well.getMapLocation().x + " y " + well.getMapLocation().y + " " + well.getType().toString());
+//        System.out.println("ad: " + adProp + " mn: " + mnProp + " forced: " + (forced == null ? "null" : forced.toString()) + " type: " + (wellType == null ? "null" : wellType.toString()));
+//        for (Well well : shortWells)
+//            System.out.println("x " + well.getMapLocation().x + " y " + well.getMapLocation().y + " " + well.getType().toString());
     }
 
     private void assignHQ(RobotController rc) throws GameActionException {
