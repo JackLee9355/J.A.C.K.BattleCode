@@ -3,6 +3,7 @@ package jackPlayer;
 import battlecode.common.*;
 import jackPlayer.Communications.Communications;
 import jackPlayer.Communications.Headquarter;
+import jackPlayer.Communications.PageLocation;
 import jackPlayer.Communications.Well;
 
 import java.util.List;
@@ -13,9 +14,16 @@ public class HeadQuartersController extends Controller {
     int carriersConstructed;
     int launchersConstructed;
     int amplifiersConstructed;
+    int anchorsBuilt;
+    MapLocation focusTarget;
 
     public HeadQuartersController(RobotController rc) {
         super(rc);
+        anchorsBuilt = 0;
+        focusTarget = null;
+        carriersConstructed = 0;
+        launchersConstructed = 0;
+        amplifiersConstructed = 0;
         try {
             List<Headquarter> headquarters = Communications.getHeadQuarters(rc);
             if (headquarters == null) {
@@ -31,9 +39,9 @@ public class HeadQuartersController extends Controller {
         }
     }
 
-    private void constructLauncher(RobotController rc) throws GameActionException {
+    private boolean constructLauncher(RobotController rc) throws GameActionException {
         if (rc.getResourceAmount(ResourceType.MANA) < 60)
-            return;
+            return false;
 
         boolean built = false;
         for (MapLocation loc : adjacentSquares(rc)) {
@@ -43,13 +51,22 @@ public class HeadQuartersController extends Controller {
                 break;
             }
         }
-        if (built)
+        if (built) {
             launchersConstructed++;
+        }
+        return built;
     }
 
-    private void constructCarrier(RobotController rc) throws GameActionException {
+    private boolean constructCarrier(RobotController rc) throws GameActionException {
         if (rc.getResourceAmount(ResourceType.ADAMANTIUM) < 50)
-            return;
+            return false;
+
+        if (rc.getRoundNum() >= ATTENDANCE_CYCLE && rc.getRoundNum() % ATTENDANCE_CYCLE < PageLocation.NUM_PAGES * 2)
+            return false;
+
+        List<Well> wells = getShortStaffedWells(rc);
+        if (wells == null || wells.size() == 0)
+            return false;
 
         boolean built = false;
         for (MapLocation loc : adjacentSquares(rc)) {
@@ -59,8 +76,10 @@ public class HeadQuartersController extends Controller {
                 break;
             }
         }
-        if (built)
+        if (built) {
             carriersConstructed++;
+        }
+        return built;
     }
 
     private void constructAmplifier(RobotController rc) throws GameActionException {
@@ -75,18 +94,20 @@ public class HeadQuartersController extends Controller {
                 break;
             }
         }
-        if (built)
-            carriersConstructed = 0;
-            launchersConstructed = 0;
+        if (built) {
             amplifiersConstructed++;
+        }
     }
 
     private void constructUnits(RobotController rc) throws GameActionException {
-        if ((carriersConstructed + launchersConstructed + 1) % 20 == 0) {
+        boolean built = true;
+        if (turnCount % 100 == 25) {
             constructAmplifier(rc);
-        } else {
-            constructLauncher(rc);
-            constructCarrier(rc);
+        }
+        while (rc.isActionReady() && built) {
+            built = false;
+            built |= constructLauncher(rc);
+            built |= constructCarrier(rc);
         }
     }
 
@@ -96,26 +117,51 @@ public class HeadQuartersController extends Controller {
         if (turnCount < 3) {
             Communications.addFriendlyHeadquarters(rc, myLocation.x, myLocation.y, headQuartersIndex);
         }
-        WellInfo[] wellInfos = rc.senseNearbyWells();
-        for (WellInfo wellInfo : wellInfos) {
-            manageWell(rc, wellInfo);
-        }
         if (headQuartersIndex == 0) {
             Communications.processInput(rc);
+            if (rc.getRoundNum() % ATTENDANCE_CYCLE < PageLocation.NUM_PAGES && Communications.getPage(rc) == PageLocation.WELLS.page) {
+                Communications.resetAllWellWorkers(rc);
+            }
             if (turnCount > 10) {
                 Communications.iteratePage(rc);
             }
-//            List<Well> wells = Communications.getWells(rc);
-//            if (wells != null) {
-//                StringBuilder sb = new StringBuilder();
-//                for (Well well : wells) {
-//                    sb.append(well.getMapLocation().x).append(" ").append(well.getMapLocation().y).append(", ");
+            if (turnCount > 200) {
+                if ((turnCount / 50) % 2 == 0) {
+                    if (focusTarget == null) {
+                        List<MapLocation> targets = approxEnemyBase(rc);
+                        if (targets != null) {
+                            focusTarget = targets.get((turnCount / 100) % targets.size());
+                        }
+                    } else {
+                        rc.setIndicatorString("Focus set to: (" + focusTarget.x + ", " + focusTarget.y + ")");
+                        Communications.updateControl(rc, 1, focusTarget.x, focusTarget.y);
+                    }
+                } else {
+                    focusTarget = null;
+                    rc.setIndicatorString("Focus is null");
+                    Communications.updateControl(rc, 0, 0, 0);
+                }
+            }
+//            if (turnCount % 100 == 0) {
+//                List<Well> wells = Communications.getWells(rc);
+//                if (wells != null) {
+//                    StringBuilder sb = new StringBuilder();
+//                    for (Well well : wells) {
+//                        sb.append("(").append(well.getMapLocation().x).append(", ").append(well.getMapLocation().y).append("), ");
+//                    }
+//                    sb.append("\n");
+//                    System.out.println(sb.toString());
 //                }
-//                sb.append("\n");
-//                System.out.println(sb.toString());
 //            }
         }
-        constructUnits(rc);
+        if (turnCount >= 400 && (turnCount / 20) % 5 == 0 && anchorsBuilt < 2) {
+            if (rc.canBuildAnchor(Anchor.STANDARD)) {
+                rc.buildAnchor(Anchor.STANDARD);
+                anchorsBuilt++;
+            }
+        } else {
+            constructUnits(rc);
+        }
     }
 
 }
