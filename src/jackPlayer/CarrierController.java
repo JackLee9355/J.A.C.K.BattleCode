@@ -19,8 +19,8 @@ public class CarrierController extends Controller {
     private Queue<MapLocation> moves;
     private MapLocation target;
     private int[][] adjFromTarget = {
-        {0, 4}, {4, 0}, {-4, 0}, {0, -4},
-        {4, 4}, {4, -4}, {-4, 4}, {-4, -4}
+            {0, 4}, {4, 0}, {-4, 0}, {0, -4},
+            {4, 4}, {4, -4}, {-4, 4}, {-4, -4}
     };
 
     private static final int MIN_AD_STAFF = 2;
@@ -203,22 +203,22 @@ public class CarrierController extends Controller {
     @Override
     public void run(RobotController rc) throws GameActionException {
         super.run(rc);
-        
-        if (rc.getRoundNum() % ATTENDANCE_CYCLE == 0 || (!officialAssignment && rc.canWriteSharedArray(0,0))) {
+
+        if (rc.getRoundNum() % ATTENDANCE_CYCLE == 0 || (!officialAssignment && rc.canWriteSharedArray(0, 0))) {
             wellLocation = null;
             wellType = null;
         }
 
         attemptToPutAnchor(rc);
-        
+
         moves.add(myLocation);
         if (moves.size() > 5) {
             moves.remove();
         }
 
         int damage = (rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ELIXIR)) * 5;
-        if(damage % 4 < 3){
-          attack(rc);
+        if (damage % 4 < 3) {
+            attack(rc);
         }
 
         if (rc.getAnchor() != null) {
@@ -236,14 +236,14 @@ public class CarrierController extends Controller {
             } else {
                 rc.setIndicatorString("Gathering from Well: " + wellLocation.x + ", " + wellLocation.y);
                 if (target != null && moves.size() == 5 && myLocation.distanceSquaredTo(moves.peek()) <= 2) {
-                    target = null; 
+                    target = null;
                     moves.clear();
                 }
 
                 if (target != null) {
                     pathing.move(target);
                     if (target.distanceSquaredTo(myLocation) <= 2) {
-                        target = null; 
+                        target = null;
                         moves.clear();
                     }
                 } else if (moves.size() == 5 && myLocation.distanceSquaredTo(moves.peek()) <= 2 && wellLocation.distanceSquaredTo(myLocation) > 2) {
@@ -256,7 +256,7 @@ public class CarrierController extends Controller {
                             randomLocations.add(new MapLocation(xf, yf));
                         }
                     }
-                    
+
                     int index = rng.nextInt(randomLocations.size());
                     target = randomLocations.get(index);
                     pathing.move(target);
@@ -264,6 +264,7 @@ public class CarrierController extends Controller {
                     // pathingAStar.pathTo(rc, wellLocation);
                     pathing.move(wellLocation);
                 }
+                attemptCollect(rc);
                 attemptCollect(rc);
             }
             assignHQ(rc);
@@ -276,7 +277,7 @@ public class CarrierController extends Controller {
             } else {
                 if (wellLocation != null) {
                     rc.setIndicatorString("Returning from Well: " + wellLocation.x + ", " + wellLocation.y + " Officially: " + officialAssignment + " to Headquarters: " + headquarter.x + ", " + headquarter.y);
-                } else{
+                } else {
                     rc.setIndicatorString("Returning to Headquarters: " + headquarter.x + ", " + headquarter.y);
                 }
                 if (headquarter.distanceSquaredTo(myLocation) > 2) {
