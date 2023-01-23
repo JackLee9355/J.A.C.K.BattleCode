@@ -216,7 +216,10 @@ public class CarrierController extends Controller {
             moves.remove();
         }
 
-        attack(rc);
+        int damage = (rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ELIXIR)) * 5;
+        if(damage % 4 < 3){
+          attack(rc);
+        }
 
         if (rc.getAnchor() != null) {
             attemptToPutAnchor(rc); // TODO: improve
